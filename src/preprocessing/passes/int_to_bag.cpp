@@ -35,6 +35,7 @@
 #include "expr/node.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "util/rational.h"
 
 using namespace cvc5::internal;
 using namespace cvc5::internal::theory;
@@ -55,13 +56,11 @@ PreprocessingPassResult IntToBag::applyInternal(
    AssertionPipeline* assertionsToPreprocess)
 {
 
- /* replace applications of UF by skolems */
- // FIXME for model building, github issue #1901
  for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
  {
-   Node result = Node();
+   Node result = NodeManager::currentNM()->mkConstInt(Rational(1));
    assertionsToPreprocess->replace(
-       i, result);
+       i, rewrite(result));
  }
 
  return PreprocessingPassResult::NO_CONFLICT;
