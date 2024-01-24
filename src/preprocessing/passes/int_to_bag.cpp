@@ -32,6 +32,7 @@
 #include "smt/logic_exception.h"
 #include "options/base_options.h"
 #include "options/options.h"
+#include "expr/node.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 
@@ -41,264 +42,6 @@ using namespace cvc5::internal::theory;
 namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
-
-/* -------------------------------------------------------------------------- */
-
-namespace {
-
-void addLemmaForPair2(TNode args1,
-                    TNode args2,
-                    const TNode func,
-                    AssertionPipeline* assertionsToPreprocess,
-                    NodeManager* nm)
-{
- Node args_eq;
-
- if (args1.getKind() == Kind::APPLY_UF)
- {
-   Assert(args1.getOperator() == func);
-   Assert(args2.getKind() == Kind::APPLY_UF && args2.getOperator() == func);
-   Assert(args1.getNumChildren() == args2.getNumChildren());
-   Assert(args1.getNumChildren() >= 1);
-
-   std::vector<Node> eqs(args1.getNumChildren());
-
-   for (unsigned i = 0, n = args1.getNumChildren(); i < n; ++i)
-   {
-     eqs[i] = nm->mkNode(Kind::EQUAL, args1[i], args2[i]);
-   }
-   if (eqs.size() >= 2)
-   {
-     args_eq = nm->mkNode(Kind::AND, eqs);
-   }
-   else
-   {
-     args_eq = eqs[0];
-   }
- }
- else
- {
-   Assert(args1.getKind() == Kind::SELECT && args1.getOperator() == func);
-   Assert(args2.getKind() == Kind::SELECT && args2.getOperator() == func);
-   Assert(args1.getNumChildren() == 2);
-   Assert(args2.getNumChildren() == 2);
-   args_eq = nm->mkNode(Kind::AND,
-                        nm->mkNode(Kind::EQUAL, args1[0], args2[0]),
-                        nm->mkNode(Kind::EQUAL, args1[1], args2[1]));
- }
- Node func_eq = nm->mkNode(Kind::EQUAL, args1, args2);
- Node lemma = nm->mkNode(Kind::IMPLIES, args_eq, func_eq);
- assertionsToPreprocess->push_back(lemma);
-}
-
-void storeFunctionAndAddLemmas2(TNode func,
-                              TNode term,
-                              FunctionToArgsMap& fun_to_args,
-                              SubstitutionMap& fun_to_skolem,
-                              AssertionPipeline* assertions,
-                              NodeManager* nm,
-                              std::vector<TNode>* vec)
-{
- if (fun_to_args.find(func) == fun_to_args.end())
- {
-   fun_to_args.insert(make_pair(func, TNodeSet()));
- }
- TNodeSet& set = fun_to_args[func];
- if (set.find(term) == set.end())
- {
-   TypeNode tn = term.getType();
-   SkolemManager* sm = nm->getSkolemManager();
-   Node skolem =
-       sm->mkDummySkolem("SKOLEM$$",
-                         tn,
-                         "is a variable created by the ackermannization "
-                         "preprocessing pass");
-   for (const auto& t : set)
-   {
-     addLemmaForPair2(t, term, func, assertions, nm);
-   }
-   fun_to_skolem.addSubstitution(term, skolem);
-   set.insert(term);
-   /* Add the arguments of term (newest element in set) to the vector, so that
-    * collectFunctionsAndLemmas will process them as well.
-    * This is only needed if the set has at least two elements
-    * (otherwise, no lemma is generated).
-    * Therefore, we defer this for term in case it is the first element in the
-    * set*/
-   if (set.size() == 2)
-   {
-     for (TNode elem : set)
-     {
-       vec->insert(vec->end(), elem.begin(), elem.end());
-     }
-   }
-   else if (set.size() > 2)
-   {
-     vec->insert(vec->end(), term.begin(), term.end());
-   }
- }
-}
-
-/* We only add top-level applications of functions.
-* For example: when we see "f(g(x))", we do not add g as a function and x as a
-* parameter.
-* Instead, we only include f as a function and g(x) as a parameter.
-* However, if we see g(x) later on as a top-level application, we will add it
-* as well.
-* Another example: for the formula f(g(x))=f(g(y)),
-* we first only add f as a function and g(x),g(y) as arguments.
-* storeFunctionAndAddLemmas will then add the constraint g(x)=g(y) ->
-* f(g(x))=f(g(y)).
-* Now that we see g(x) and g(y), we explicitly add them as well. */
-void collectFunctionsAndLemmas2(FunctionToArgsMap& fun_to_args,
-                              SubstitutionMap& fun_to_skolem,
-                              std::vector<TNode>* vec,
-                              AssertionPipeline* assertions)
-{
- TNodeSet seen;
- NodeManager* nm = NodeManager::currentNM();
- TNode term;
- while (!vec->empty())
- {
-   term = vec->back();
-   vec->pop_back();
-   if (seen.find(term) == seen.end())
-   {
-     TNode func;
-     if (term.getKind() == Kind::APPLY_UF || term.getKind() == Kind::SELECT)
-     {
-       storeFunctionAndAddLemmas2(term.getOperator(),
-                                 term,
-                                 fun_to_args,
-                                 fun_to_skolem,
-                                 assertions,
-                                 nm,
-                                 vec);
-     }
-     else if (term.getKind() == Kind::STORE)
-     {
-       throw LogicException("Ackermannization is not supported for kind: "
-                            + kindToString(term.getKind()));
-     }
-     else
-     {
-       /* add children to the vector, so that they are processed later */
-       for (TNode n : term)
-       {
-         vec->push_back(n);
-       }
-     }
-     seen.insert(term);
-   }
- }
-}
-
-}  // namespace
-
-/* -------------------------------------------------------------------------- */
-
-/* Given a minimum capacity for an uninterpreted sort, return the size of the
-* new BV type */
-size_t getBVSkolemSize2(size_t capacity)
-{
- return static_cast<size_t>(log2(capacity)) + 1;
-}
-
-/* Given the lowest capacity requirements for each uninterpreted sort, assign
-* a sufficient bit-vector size.
-* Populate usVarsToBVVars so that it maps variables with uninterpreted sort to
-* the fresh skolem BV variables. variables */
-void collectUSortsToBV2(const std::unordered_set<TNode>& vars,
-                      const USortToBVSizeMap& usortCardinality,
-                      SubstitutionMap& usVarsToBVVars)
-{
- NodeManager* nm = NodeManager::currentNM();
- SkolemManager* sm = nm->getSkolemManager();
-
- for (TNode var : vars)
- {
-   TypeNode type = var.getType();
-   size_t size = getBVSkolemSize2(usortCardinality.at(type));
-   Node skolem = sm->mkDummySkolem(
-       "BVSKOLEM$$",
-       nm->mkBitVectorType(size),
-       "a variable created by the ackermannization "
-       "preprocessing pass, representing a variable with uninterpreted sort "
-           + type.toString() + ".");
-   usVarsToBVVars.addSubstitution(var, skolem);
- }
-}
-
-/* This function returns the list of terms with uninterpreted sort in the
-* formula represented by assertions. */
-std::unordered_set<TNode> getVarsWithUSorts2(AssertionPipeline* assertions)
-{
- std::unordered_set<TNode> res;
-
- for (const Node& assertion : assertions->ref())
- {
-   std::unordered_set<TNode> vars;
-   expr::getVariables(assertion, vars);
-
-   for (const TNode& var : vars)
-   {
-     if (var.getType().isUninterpretedSort())
-     {
-       res.insert(var);
-     }
-   }
- }
-
- return res;
-}
-
-/* This is the top level of converting uninterpreted sorts to bit-vectors.
-* We count the number of different variables for each uninterpreted sort.
-* Then for each sort, we will assign a new bit-vector type with a sufficient
-* size. The size is calculated to have enough capacity, that can accommodate
-* the variables occured in the original formula. At the end, all variables of
-* uninterpreted sorts will be converted into Skolem variables of BV */
-void usortsToBitVectors2(const LogicInfo& d_logic,
-                       AssertionPipeline* assertions,
-                       USortToBVSizeMap& usortCardinality,
-                       SubstitutionMap& usVarsToBVVars)
-{
- std::unordered_set<TNode> toProcess = getVarsWithUSorts2(assertions);
-
- if (toProcess.size() > 0)
- {
-   /* the current version only supports BV for removing uninterpreted sorts */
-   if (not d_logic.isTheoryEnabled(theory::THEORY_BV))
-   {
-     return;
-   }
-
-   for (TNode term : toProcess)
-   {
-     TypeNode type = term.getType();
-     /* Update the counts for each uninterpreted sort.
-      * For non-existing keys, C++ will create a new element for it, which has
-      * a default 0 value, before incrementing by 1. */
-     usortCardinality[type] = usortCardinality[type] + 1;
-   }
-
-   collectUSortsToBV2(toProcess, usortCardinality, usVarsToBVVars);
-
-   for (size_t i = 0, size = assertions->size(); i < size; ++i)
-   {
-     Node old = (*assertions)[i];
-     Node newA = usVarsToBVVars.apply((*assertions)[i]);
-     if (newA != old)
-     {
-       assertions->replace(i, newA);
-       Trace("uninterpretedSorts-to-bv")
-           << "  " << old << " => " << (*assertions)[i] << "\n";
-     }
-   }
- }
-}
-
-/* -------------------------------------------------------------------------- */
 
 IntToBag::IntToBag(PreprocessingPassContext* preprocContext)
    : PreprocessingPass(preprocContext, "int-to-bag"),
@@ -311,29 +54,15 @@ IntToBag::IntToBag(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult IntToBag::applyInternal(
    AssertionPipeline* assertionsToPreprocess)
 {
- AlwaysAssert(!options().base.incrementalSolving);
-
- /* collect all function applications and generate consistency lemmas
-  * accordingly */
- std::vector<TNode> to_process;
- for (const Node& a : assertionsToPreprocess->ref())
- {
-   to_process.push_back(a);
- }
- collectFunctionsAndLemmas2(
-     d_funcToArgs, d_funcToSkolem, &to_process, assertionsToPreprocess);
 
  /* replace applications of UF by skolems */
  // FIXME for model building, github issue #1901
  for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
  {
+   Node result = Node();
    assertionsToPreprocess->replace(
-       i, d_funcToSkolem.apply((*assertionsToPreprocess)[i]));
+       i, result);
  }
-
- /* replace uninterpreted sorts with bit-vectors */
- usortsToBitVectors2(
-     d_logic, assertionsToPreprocess, d_usortCardinality, d_usVarsToBVVars);
 
  return PreprocessingPassResult::NO_CONFLICT;
 }

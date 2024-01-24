@@ -48,20 +48,6 @@ public:
  IntToBag(PreprocessingPassContext* preprocContext);
 
 protected:
- /**
-  * Apply Ackermannization as follows:
-  *
-  * - For each application f(X) where X = (x1, . . . , xn), introduce a fresh
-  *   variable f_X and use it to replace all occurrences of f(X).
-  *
-  * - For each f(X) and f(Y) with X = (x1, . . . , xn) and Y = (y1, . . . , yn)
-  *   occurring in the input formula, add the following lemma:
-  *     (x_1 = y_1 /\ ... /\ x_n = y_n) => f_X = f_Y
-  *
-  * - For each uninterpreted sort S, suppose k is the number of variables with
-  *   sort S, then for each such variable X, introduce a fresh variable BV_X
-  *   with BV with size log_2(k)+1 and use it to replace all occurrences of X.
-  */
  PreprocessingPassResult applyInternal(
      AssertionPipeline* assertionsToPreprocess) override;
 
