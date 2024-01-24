@@ -163,7 +163,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     applyPass("ackermann", ap);
   }
 
-  if (options().smt.solveIntAsBags)
+  if (options().smt.solveIntAsBag)
   {
       applyPass("int-to-bag", ap);
   }
