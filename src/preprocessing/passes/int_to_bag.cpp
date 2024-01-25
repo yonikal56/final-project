@@ -58,9 +58,15 @@ PreprocessingPassResult IntToBag::applyInternal(
 
  for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
  {
+   Node int1 = NodeManager::currentNM()->mkConstInt(Rational(5));
+   Node int2 = NodeManager::currentNM()->mkConstInt(Rational(3));
+   Node int0 = NodeManager::currentNM()->mkConstInt(Rational(1));
+   Node bag1 = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, int2, int0);
+   Node bag2 = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, int1, int0);
+   Node res = NodeManager::currentNM()->mkNode(Kind::BAG_UNION_DISJOINT, bag1, bag2);
    Node result = NodeManager::currentNM()->mkConst(false);
    assertionsToPreprocess->replace(
-       i, result);
+       i, rewrite(res));
  }
 
  return PreprocessingPassResult::NO_CONFLICT;
