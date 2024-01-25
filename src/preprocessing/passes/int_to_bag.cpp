@@ -56,11 +56,11 @@ PreprocessingPassResult IntToBag::applyInternal(
    AssertionPipeline* assertionsToPreprocess)
 {
 
- for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
+ for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
  {
-   Node result = NodeManager::currentNM()->mkConstInt(Rational(1));
+   Node result = NodeManager::currentNM()->mkConst(false);
    assertionsToPreprocess->replace(
-       i, rewrite(result));
+       i, result);
  }
 
  return PreprocessingPassResult::NO_CONFLICT;
