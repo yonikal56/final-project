@@ -99,8 +99,8 @@ Node convertAssertion(TNode n, NodeMap& cache)
 
 Node convertIntToBag(int n)
 {
-  /*std::vector <Node> children;
-  children.push_back(NodeManager::currentNM()->mkNode(Kind::SET_UNIVERSE));
+  std::vector <Node> children;
+//  children.push_back(NodeManager::currentNM()->mkNode(Kind::SET_UNIVERSE));
 
   // Print the number of 2s that divide n
   while (n % 2 == 0) {
@@ -123,7 +123,8 @@ Node convertIntToBag(int n)
   if (n > 2)
       children.push_back(NodeManager::currentNM()->mkConstInt(Rational(n)));
 
-  Node node = NodeManager::currentNM()->mkNode(Kind::SET_INSERT, children);*/
+  Node node = NodeManager::currentNM()->mkNode(Kind::SET_INSERT, children);
+
   return NodeManager::currentNM()->mkNode(
       Kind::BAG_MAKE,
       {NodeManager::currentNM()->mkConstInt(Rational(n)),
@@ -141,6 +142,7 @@ IntToBag::IntToBag(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult IntToBag::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
+  Trace("int-to-bags")<<"hello world!"<<std::endl;
   Node bag1 = convertIntToBag(315);
   Node bag2 = convertIntToBag(19);
   Node res =
