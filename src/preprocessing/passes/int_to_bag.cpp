@@ -167,6 +167,7 @@ PreprocessingPassResult IntToBag::applyInternal(
 {
   Node bag1 = convertIntToBag(315);
   Node bag2 = convertIntToBag(19);
+  Trace("int-to-bags") << bag1 << bag2 << std::endl;
   Node res =
       NodeManager::currentNM()->mkNode(Kind::BAG_UNION_DISJOINT, bag1, bag2);
 
