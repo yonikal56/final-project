@@ -60,7 +60,16 @@ Node convertAssertion(TNode n, NodeMap& cache)
     Node result;
     //std::cout<<toString(current.getKind())<<current.toString()<<to_string(current.getNumChildren())<<std::endl;
     NodeManager* nm = NodeManager::currentNM();
-    if (current.getNumChildren() == 0)
+    SkolemManager* sm = nm->getSkolemManager();
+
+    if (current.isVar() && current.getType() == nm->integerType())
+    {
+      result = sm->mkDummySkolem("__intToBag_var",
+                                 nm->mkBagType(current.getType()),
+                                 "Variable introduced in intToBag pass");
+    }
+
+    else if (current.getNumChildren() == 0)
     {
       result = current;
     }
@@ -74,7 +83,7 @@ Node convertAssertion(TNode n, NodeMap& cache)
         Assert(cache.find(current[i]) != cache.end());
         Node child = current[i];
         Node childRes = cache[current[i]];
-        result = nm->mkNode(Kind::BAG_UNION_DISJOINT, result, childRes);
+        //result = nm->mkNode(Kind::BAG_UNION_DISJOINT, result, childRes);
       }
     }
     else
@@ -100,11 +109,13 @@ Node convertAssertion(TNode n, NodeMap& cache)
 Node convertIntToBag(int n)
 {
   std::vector <Node> children;
-//  children.push_back(NodeManager::currentNM()->mkNode(Kind::SET_UNIVERSE));
+  Node one = NodeManager::currentNM()->mkConstInt(Rational(1));
+  Node two = NodeManager::currentNM()->mkConstInt(Rational(2));
 
   // Print the number of 2s that divide n
   while (n % 2 == 0) {
-      children.push_back(NodeManager::currentNM()->mkConstInt(Rational(2)));
+      Node node = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, two, one);
+      children.push_back(node);
       n = n / 2;
   }
 
@@ -113,7 +124,9 @@ Node convertIntToBag(int n)
   for (int i = 3; i <= std::sqrt(n); i = i + 2) {
       // While i divides n, print i and divide n
       while (n % i == 0) {
-          children.push_back(NodeManager::currentNM()->mkConstInt(Rational(i)));
+          Node num = NodeManager::currentNM()->mkConstInt(Rational(i));
+          Node node = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, num, one);
+          children.push_back(node);
           n = n / i;
       }
   }
@@ -121,14 +134,24 @@ Node convertIntToBag(int n)
   // This condition is to handle the case when n
   // is a prime number greater than 2
   if (n > 2)
-      children.push_back(NodeManager::currentNM()->mkConstInt(Rational(n)));
+  {
+    Node num = NodeManager::currentNM()->mkConstInt(Rational(n));
+    Node node = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, num, one);
+    children.push_back(node);
+  }
 
-  Node node = NodeManager::currentNM()->mkNode(Kind::SET_INSERT, children);
+  if (children.size() == 1) {
+    Node node = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, one, one);
+    children.push_back(node);
+  }
 
-  return NodeManager::currentNM()->mkNode(
-      Kind::BAG_MAKE,
-      {NodeManager::currentNM()->mkConstInt(Rational(n)),
-       NodeManager::currentNM()->mkConstInt(Rational(1))});
+  Node result = children.at(0);
+  int size = children.size();
+  for (int i = 1; i < size; i++) {
+    result = NodeManager::currentNM()->mkNode(Kind::BAG_UNION_DISJOINT, result, children.at(i));
+  }
+
+  return result;
 }
 
 IntToBag::IntToBag(PreprocessingPassContext* preprocContext)
@@ -142,7 +165,6 @@ IntToBag::IntToBag(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult IntToBag::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Trace("int-to-bags")<<"hello world!"<<std::endl;
   Node bag1 = convertIntToBag(315);
   Node bag2 = convertIntToBag(19);
   Node res =
