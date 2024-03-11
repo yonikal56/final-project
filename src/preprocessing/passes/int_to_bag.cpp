@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Ying Sheng, Yoni Zohar, Aina Niemetz
+ *   Yehonatan Calinsky, Yoni Zohar
  *
  * This file is part of the cvc5 project.
  *
@@ -9,17 +9,8 @@
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
+ * Int to bag preprocessing pass.
  *
- * Ackermannization preprocessing pass.
- *
- * This implements the Ackermannization preprocessing pass, which enables
- * very limited theory combination support for eager bit-blasting via
- * Ackermannization. It reduces constraints over the combination of the
- * theories of fixed-size bit-vectors and uninterpreted functions as
- * described in
- *   Liana Hadarean, An Efficient and Trustworthy Theory Solver for
- *   Bit-vectors in Satisfiability Modulo Theories.
- *   https://cs.nyu.edu/media/publications/hadarean_liana.pdf
  */
 
 #include "preprocessing/passes/int_to_bag.h"
@@ -50,17 +41,23 @@ namespace passes {
 using namespace std;
 using namespace cvc5::internal::theory;
 
+void addToMap(std::map<int, int> &map, int newNum) {
+  if(map.find(newNum) == map.end()){
+    map[newNum] = 1;
+  }else{
+    map[newNum] += 1;
+  }
+}
+
 Node convertIntToBag(int n)
 {
   std::vector<Node> children;
-  Node one = NodeManager::currentNM()->mkConstInt(Rational(1));
-  Node two = NodeManager::currentNM()->mkConstInt(Rational(2));
+  std::map<int, int> nums;
 
   // Print the number of 2s that divide n
   while (n % 2 == 0)
   {
-    Node node = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, two, one);
-    children.push_back(node);
+    addToMap(nums, 2);
     n = n / 2;
   }
 
@@ -71,9 +68,7 @@ Node convertIntToBag(int n)
     // While i divides n, print i and divide n
     while (n % i == 0)
     {
-      Node num = NodeManager::currentNM()->mkConstInt(Rational(i));
-      Node node = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, num, one);
-      children.push_back(node);
+      addToMap(nums, i);
       n = n / i;
     }
   }
@@ -82,15 +77,19 @@ Node convertIntToBag(int n)
   // is a prime number greater than 2
   if (n > 2)
   {
-    Node num = NodeManager::currentNM()->mkConstInt(Rational(n));
-    Node node = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, num, one);
+    addToMap(nums, n);
+  }
+
+  for (auto i = nums.begin(); i != nums.end(); ++i) {
+    Node first = NodeManager::currentNM()->mkConstInt(Rational(i->first));
+    Node second = NodeManager::currentNM()->mkConstInt(Rational(i->second));
+    Node node = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, first, second);
     children.push_back(node);
   }
 
   if (children.size() == 1)
   {
-    Node node = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, one, one);
-    children.push_back(node);
+    return children.at(0);
   }
 
   Node result = children.at(0);

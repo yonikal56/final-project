@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Ying Sheng, Mathias Preiner
+ *   Yehonatan Calinsky, Yoni Zohar
  *
  * This file is part of the cvc5 project.
  *
@@ -10,16 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Ackermannization preprocessing pass.
+ * Int to bag preprocessing pass.
  *
- * This implements the Ackermannization preprocessing pass, which enables
- * very limited theory combination support for eager bit-blasting via
- * Ackermannization. It reduces constraints over the combination of the
- * theories of fixed-size bit-vectors and uninterpreted functions as
- * described in
- *   Liana Hadarean, An Efficient and Trustworthy Theory Solver for
- *   Bit-vectors in Satisfiability Modulo Theories.
- *   https://cs.nyu.edu/media/publications/hadarean_liana.pdf
  */
 
 #include "cvc5_private.h"
