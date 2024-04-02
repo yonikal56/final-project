@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,6 @@
 #include "expr/dtype_cons.h"
 #include "expr/nary_term_util.h"
 #include "expr/sequence.h"
-#include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -80,7 +79,7 @@ Node AlfNodeConverter::postConvert(Node n)
     return n;
   }
   TypeNode tn = n.getType();
-  if (k == Kind::SKOLEM)
+  if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
@@ -138,57 +137,18 @@ Node AlfNodeConverter::postConvert(Node n)
   {
     return mkInternalApp("_", {n[0], n[1]}, tn);
   }
-  else if (k == Kind::CONST_INTEGER)
-  {
-    Rational r = n.getConst<Rational>();
-    if (r.sgn() == -1)
-    {
-      // negative integers are printed as "-n"
-      std::stringstream ss;
-      ss << "-" << r.abs();
-      return mkInternalSymbol(ss.str(), tn);
-    }
-    return n;
-  }
-  else if (k == Kind::CONST_RATIONAL)
-  {
-    Rational r = n.getConst<Rational>();
-    // ensure rationals are printed properly here using alf syntax,
-    // which is "n/d" or "-n/d".
-    Integer num = r.getNumerator().abs();
-    Integer den = r.getDenominator();
-    std::stringstream ss;
-    ss << (r.sgn() == -1 ? "-" : "") << num << "/" << den;
-    return mkInternalSymbol(ss.str(), tn);
-  }
-  else if (k == Kind::LAMBDA || k == Kind::WITNESS)
-  {
-    // e.g. (lambda ((x1 T1) ... (xn Tk)) P) is
-    // (lambda x1 (lambda x2 ... (lambda xn P)))
-    Node ret = n[1];
-    TypeNode tnr = ret.getType();
-    std::stringstream opName;
-    opName << printer::smt2::Smt2Printer::smtKindString(k);
-    for (size_t i = 0, nchild = n[0].getNumChildren(); i < nchild; i++)
-    {
-      size_t ii = (nchild - 1) - i;
-      Node v = convert(n[0][ii]);
-      // use the body return type for all terms except the last one.
-      tnr = ii == 0 ? n.getType() : nm->mkFunctionType({v.getType()}, tnr);
-      ret = mkInternalApp(opName.str(), {v, ret}, tnr);
-    }
-    return ret;
-  }
   else if (n.isClosure())
   {
     // e.g. (forall ((x1 T1) ... (xn Tk)) P) is
-    // (forall (@list x1 ... xn) P)
+    // (forall ((<name_1> T1) ... (<name_n> Tk)) P) for updated (disambiguated)
+    // variable names.
     std::vector<Node> vars;
     for (const Node& v : n[0])
     {
       vars.push_back(convert(v));
     }
-    Node vl = mkList(vars);
+    // use a bound variable list with the updated variables.
+    Node vl = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
     // notice that intentionally we drop annotations here
     std::vector<Node> args;
     args.push_back(vl);
@@ -303,6 +263,13 @@ Node AlfNodeConverter::postConvert(Node n)
     ss << "@fp." << printer::smt2::Smt2Printer::smtKindString(k);
     return mkInternalApp(ss.str(), {tnn}, tn);
   }
+  else if (k == Kind::SEXPR || k == Kind::BOUND_VAR_LIST)
+  {
+    // use generic list
+    std::vector<Node> args;
+    args.insert(args.end(), n.begin(), n.end());
+    return mkInternalApp("@list", args, tn);
+  }
   else if (GenericOp::isIndexedOperatorKind(k))
   {
     // return app of?
@@ -327,8 +294,8 @@ Node AlfNodeConverter::postConvert(Node n)
 bool AlfNodeConverter::shouldTraverse(Node n)
 {
   Kind k = n.getKind();
-  // don't convert bound variable or instantiation pattern list directly
-  if (k == Kind::BOUND_VAR_LIST || k == Kind::INST_PATTERN_LIST)
+  // don't convert instantiation pattern list directly
+  if (k == Kind::INST_PATTERN_LIST)
   {
     return false;
   }
@@ -347,57 +314,43 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  SkolemFunId sfi = SkolemFunId::NONE;
+  SkolemId sfi = SkolemId::NONE;
   Node cacheVal;
   TypeNode tn = k.getType();
   if (sm->isSkolemFunction(k, sfi, cacheVal))
   {
     Node app;
-    if (sfi == SkolemFunId::PURIFY)
+    if (sfi == SkolemId::PURIFY)
     {
       Assert(cacheVal.getType() == k.getType());
       // special case: just use self
       app = convert(cacheVal);
     }
-    else
+    else if (isHandledSkolemId(sfi))
     {
       // convert every skolem function to its name applied to arguments
       std::stringstream ss;
-      ss << "@k." << sfi;
+      ss << "@" << sfi;
       std::vector<Node> args;
-      if (sfi == SkolemFunId::QUANTIFIERS_SKOLEMIZE)
+      if (cacheVal.getKind() == Kind::SEXPR)
       {
-        // must provide the variable, not the index (for typing)
-        Assert(cacheVal.getNumChildren() == 2);
-        Assert(cacheVal[0].getKind() == Kind::EXISTS);
-        Node q = convert(cacheVal[0]);
-        Node index = cacheVal[1];
-        Assert(index.getKind() == Kind::CONST_INTEGER);
-        const Integer& i = index.getConst<Rational>().getNumerator();
-        Assert(i.fitsUnsignedInt());
-        size_t ii = i.getUnsignedInt();
-        args.push_back(q);
-        args.push_back(convert(q[0][ii]));
+        for (const Node& cv : cacheVal)
+        {
+          args.push_back(convert(cv));
+        }
       }
-      else
+      else if (!cacheVal.isNull())
       {
-        if (cacheVal.getKind() == Kind::SEXPR)
-        {
-          for (const Node& cv : cacheVal)
-          {
-            args.push_back(convert(cv));
-          }
-        }
-        else if (!cacheVal.isNull())
-        {
-          args.push_back(convert(cacheVal));
-        }
+        args.push_back(convert(cacheVal));
       }
       // must convert all arguments
       app = mkInternalApp(ss.str(), args, k.getType());
     }
-    // wrap in "skolem" operator
-    return mkInternalApp("skolem", {app}, k.getType());
+    if (!app.isNull())
+    {
+      // wrap in "skolem" operator
+      return mkInternalApp("skolem", {app}, k.getType());
+    }
   }
   return Node::null();
 }
@@ -433,6 +386,8 @@ Node AlfNodeConverter::mkNil(TypeNode tn)
 
 Node AlfNodeConverter::getNullTerminator(Kind k, TypeNode tn)
 {
+  // note this method should remain in sync with getCongRule in
+  // proof_node_algorithm.cpp.
   switch (k)
   {
     case Kind::APPLY_UF:
@@ -514,7 +469,7 @@ Node AlfNodeConverter::mkInternalApp(const std::string& name,
   return mkInternalSymbol(name, ret, useRawSym);
 }
 
-Node AlfNodeConverter::getOperatorOfTerm(Node n)
+Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
 {
   Assert(n.hasOperator());
   NodeManager* nm = NodeManager::currentNM();
@@ -548,6 +503,17 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
         if (dt.isTuple())
         {
           opName << "is-tuple";
+        }
+        else if (dt.isNullable())
+        {
+          if (cindex == 0)
+          {
+            opName << "nullable.is_null";
+          }
+          else
+          {
+            opName << "nullable.is_some";
+          }
         }
         else
         {
@@ -629,13 +595,8 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
       opName << op;
     }
   }
-  // we only use binary operators
   else
   {
-    if (k == Kind::NEG)
-    {
-      opName << "u";
-    }
     opName << printer::smt2::Smt2Printer::smtKindString(k);
     if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
         || k == Kind::INTS_MODULUS_TOTAL)
@@ -650,9 +611,29 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
   {
     ret = mkInternalApp(opName.str(), indices, app.getOperator().getType());
   }
+  else if (n.isClosure())
+  {
+    // The operator of a closure by convention includes its variable list.
+    // This is required for cong over binders.
+    Node vl = convert(n[0]);
+    // the type of this term is irrelevant, just use vl's type
+    ret = mkInternalApp(
+        printer::smt2::Smt2Printer::smtKindString(k), {vl}, vl.getType());
+  }
   else
   {
     ret = args.empty() ? app : app.getOperator();
+  }
+  if (reqCast)
+  {
+    // - prints as e.g. (alf.as - (-> Int Int)).
+    if (k == Kind::NEG || k == Kind::SUB)
+    {
+      std::vector<Node> asChildren;
+      asChildren.push_back(ret);
+      asChildren.push_back(typeAsNode(ret.getType()));
+      ret = mkInternalApp("alf.as", asChildren, n.getType());
+    }
   }
   Trace("alf-term-process-debug2") << "...return " << ret << std::endl;
   return ret;
@@ -669,6 +650,44 @@ size_t AlfNodeConverter::getOrAssignIndexForConst(Node v)
   size_t id = d_constIndex.size();
   d_constIndex[v] = id;
   return id;
+}
+
+bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
+{
+  switch (id)
+  {
+    case SkolemId::PURIFY:
+    case SkolemId::ARRAY_DEQ_DIFF:
+    case SkolemId::DIV_BY_ZERO:
+    case SkolemId::INT_DIV_BY_ZERO:
+    case SkolemId::MOD_BY_ZERO:
+    case SkolemId::TRANSCENDENTAL_PURIFY:
+    case SkolemId::TRANSCENDENTAL_PURIFY_ARG:
+    case SkolemId::QUANTIFIERS_SKOLEMIZE:
+    case SkolemId::STRINGS_NUM_OCCUR:
+    case SkolemId::STRINGS_NUM_OCCUR_RE:
+    case SkolemId::STRINGS_OCCUR_INDEX:
+    case SkolemId::STRINGS_OCCUR_INDEX_RE:
+    case SkolemId::STRINGS_OCCUR_LEN_RE:
+    case SkolemId::STRINGS_DEQ_DIFF:
+    case SkolemId::STRINGS_REPLACE_ALL_RESULT:
+    case SkolemId::STRINGS_ITOS_RESULT:
+    case SkolemId::STRINGS_STOI_RESULT:
+    case SkolemId::STRINGS_STOI_NON_DIGIT:
+    case SkolemId::RE_FIRST_MATCH_PRE:
+    case SkolemId::RE_FIRST_MATCH:
+    case SkolemId::RE_FIRST_MATCH_POST:
+    case SkolemId::RE_UNFOLD_POS_COMPONENT:
+    case SkolemId::BAGS_DEQ_DIFF:
+    case SkolemId::BAGS_DISTINCT_ELEMENTS:
+    case SkolemId::BAGS_MAP_PREIMAGE_INJECTIVE:
+    case SkolemId::BAGS_DISTINCT_ELEMENTS_SIZE:
+    case SkolemId::BAGS_MAP_SUM:
+    case SkolemId::TABLES_GROUP_PART:
+    case SkolemId::TABLES_GROUP_PART_ELEMENT: return true;
+    default: break;
+  }
+  return false;
 }
 
 }  // namespace proof
