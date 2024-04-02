@@ -1,0 +1,9 @@
+Guide points:
+- add expected
+- set option for the pass in all test automatically
+
+Tests ideas:
+1. multiplication of n >= 2 integers is some value
+2. like 1 but all different from the result
+3. like 2 but all different from each other
+4. like 1 but for a prime number

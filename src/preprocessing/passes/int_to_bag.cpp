@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar, Gereon Kremer, Mathias Preiner
+ *   Yehonatan Calinsky, Yoni Zohar
  *
  * This file is part of the cvc5 project.
  *
@@ -9,44 +9,188 @@
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
- *
- * The BVToInt preprocessing pass.
- *
- * Converts bit-vector operations into integer operations.
+ * Int to bag preprocessing pass.
  *
  */
 
 #include "preprocessing/passes/int_to_bag.h"
 
 #include <cmath>
-#include <string>
-#include <unordered_map>
-#include <vector>
 
+#include "base/check.h"
 #include "expr/node.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_traversal.h"
-#include "options/smt_options.h"
-#include "options/uf_options.h"
-#include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
+#include "expr/skolem_manager.h"
+#include "options/base_options.h"
+#include "options/options.h"
 #include "preprocessing/assertion_pipeline.h"
-#include "theory/bv/theory_bv_rewrite_rules_simplification.h"
+#include "preprocessing/preprocessing_pass_context.h"
+#include "smt/logic_exception.h"
 #include "theory/rewriter.h"
+#include "theory/theory.h"
+#include "util/rational.h"
+
+using namespace cvc5::internal;
+using namespace cvc5::internal::theory;
 
 namespace cvc5::internal {
-    namespace preprocessing {
-        namespace passes {
+namespace preprocessing {
+namespace passes {
 
-            using namespace std;
-            using namespace cvc5::internal::theory;
+using namespace std;
+using namespace cvc5::internal::theory;
 
-            IntToBag::IntToBag(PreprocessingPassContext *preprocContext)
-                    : PreprocessingPass(preprocContext, "int-to-bag") {}
+void addToMap(std::map<int, int> &map, int newNum) {
+  if(map.find(newNum) == map.end()){
+    map[newNum] = 1;
+  }else{
+    map[newNum] += 1;
+  }
+}
 
-            PreprocessingPassResult IntToBag::applyInternal(
-                    AssertionPipeline *assertionsToPreprocess) {
-                return PreprocessingPassResult::NO_CONFLICT;
-            }
+Node convertIntToBag(int n)
+{
+  std::vector<Node> children;
+  std::map<int, int> nums;
 
-        }  // namespace passes
-    }  // namespace preprocessing
+  // Print the number of 2s that divide n
+  while (n % 2 == 0)
+  {
+    addToMap(nums, 2);
+    n = n / 2;
+  }
+
+  // n must be odd at this point. So we can skip
+  // one element (Note i = i +2)
+  for (int i = 3; i <= std::sqrt(n); i = i + 2)
+  {
+    // While i divides n, print i and divide n
+    while (n % i == 0)
+    {
+      addToMap(nums, i);
+      n = n / i;
+    }
+  }
+
+  // This condition is to handle the case when n
+  // is a prime number greater than 2
+  if (n > 2)
+  {
+    addToMap(nums, n);
+  }
+
+  for (auto i = nums.begin(); i != nums.end(); ++i) {
+    Node first = NodeManager::currentNM()->mkConstInt(Rational(i->first));
+    Node second = NodeManager::currentNM()->mkConstInt(Rational(i->second));
+    Node node = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, first, second);
+    children.push_back(node);
+  }
+
+  if (children.size() == 1)
+  {
+    return children.at(0);
+  }
+
+  Node result = children.at(0);
+  int size = children.size();
+  for (int i = 1; i < size; i++)
+  {
+    result = NodeManager::currentNM()->mkNode(
+        Kind::BAG_UNION_DISJOINT, result, children.at(i));
+  }
+
+  return result;
+}
+
+Node convertAssertion(TNode n, NodeMap& cache)
+{
+  for (TNode current :
+       NodeDfsIterable(n, VisitOrder::POSTORDER, [&cache](TNode nn) {
+         return cache.count(nn) > 0;
+       }))
+  {
+    Node result;
+    Trace("int-to-bags") << toString(current.getKind()) << current.toString()
+                         << to_string(current.getNumChildren()) << std::endl;
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+
+    if (current.isVar() && current.getType() == nm->integerType())
+    {
+      result = sm->mkDummySkolem("__intToBag_var",
+                                 nm->mkBagType(current.getType()),
+                                 "Variable introduced in intToBag pass");
+    }
+    else if (current.isConst() && current.getType() == nm->integerType())
+    {
+      Trace("int-to-bags") << "Num val:"
+                           << current.getConst<Rational>().getNumerator()
+                           << std::endl;
+      result = convertIntToBag(current.getConst<Rational>().getNumerator().getSignedInt());
+    }
+
+    else if (current.getNumChildren() == 0)
+    {
+      result = current;
+    }
+    else if (current.getNumChildren() == 2
+             && (current.getKind() == Kind::NONLINEAR_MULT))
+    {
+      Assert(cache.find(current[0]) != cache.end());
+      result = cache[current[0]];
+      for (unsigned i = 1; i < current.getNumChildren(); ++i)
+      {
+        Assert(cache.find(current[i]) != cache.end());
+        Node child = current[i];
+        Node childRes = cache[current[i]];
+        result = nm->mkNode(Kind::BAG_UNION_DISJOINT, result, childRes);
+      }
+    }
+    else
+    {
+      NodeBuilder builder(current.getKind());
+      if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        builder << current.getOperator();
+      }
+
+      for (unsigned i = 0; i < current.getNumChildren(); ++i)
+      {
+        Assert(cache.find(current[i]) != cache.end());
+        builder << cache[current[i]];
+      }
+      result = builder;
+    }
+    cache[current] = result;
+  }
+  return cache[n];
+}
+
+IntToBag::IntToBag(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "int-to-bag"),
+      d_funcToSkolem(userContext()),
+      d_usVarsToBVVars(userContext()),
+      d_logic(logicInfo())
+{
+}
+
+PreprocessingPassResult IntToBag::applyInternal(
+    AssertionPipeline* assertionsToPreprocess)
+{
+  NodeManager::currentNM()->mkConstInt(Rational(2));
+  NodeMap cache;
+  for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
+  {
+    assertionsToPreprocess->replace(
+        i, convertAssertion((*assertionsToPreprocess)[i], cache));
+  }
+
+  return PreprocessingPassResult::NO_CONFLICT;
+}
+
+/* -------------------------------------------------------------------------- */
+
+}  // namespace passes
+}  // namespace preprocessing
 }  // namespace cvc5::internal

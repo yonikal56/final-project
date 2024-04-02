@@ -10,12 +10,12 @@ name   = "SMT Layer"
   help       = "eliminate functions by ackermannization"
 
 [[option]]
-  name       = "solveIntAsBags"
+  name       = "solveIntAsBag"
   category   = "regular"
-  long       = "solveIntAsBags"
+  long       = "solve-int-as-bag"
   type       = "bool"
   default    = "false"
-  help       = "convert int to bags"
+  help       = "convert int to bag"
 
 [[option]]
   name       = "simplificationMode"

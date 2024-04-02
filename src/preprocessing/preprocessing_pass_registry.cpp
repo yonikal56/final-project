@@ -38,6 +38,7 @@
 #include "preprocessing/passes/global_negate.h"
 #include "preprocessing/passes/ho_elim.h"
 #include "preprocessing/passes/int_to_bv.h"
+#include "preprocessing/passes/int_to_bag.h"
 #include "preprocessing/passes/ite_removal.h"
 #include "preprocessing/passes/ite_simp.h"
 #include "preprocessing/passes/learned_rewrite.h"
@@ -125,6 +126,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("ite-simp", callCtor<ITESimp>);
   registerPassInfo("global-negate", callCtor<GlobalNegate>);
   registerPassInfo("int-to-bv", callCtor<IntToBV>);
+  registerPassInfo("int-to-bag", callCtor<IntToBag>);
   registerPassInfo("bv-to-int", callCtor<BVToInt>);
   registerPassInfo("learned-rewrite", callCtor<LearnedRewrite>);
   registerPassInfo("foreign-theory-rewrite", callCtor<ForeignTheoryRewrite>);
