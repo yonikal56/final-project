@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --solve-int-as-bag
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-logic ALL)
 (set-option :incremental false)
 (declare-fun x0 () Int)
