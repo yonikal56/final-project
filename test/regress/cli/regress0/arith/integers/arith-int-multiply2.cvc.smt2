@@ -2,6 +2,7 @@
 ; EXPECT: sat
 ; DISABLE-TESTER: model
 (set-logic ALL)
+(set-info :status sat)
 (set-option :incremental false)
 (declare-fun x0 () Int)
 (declare-fun x1 () Int)
