@@ -13,6 +13,6 @@
 (declare-fun x6 () Int)
 (declare-fun x7 () Int)
 (declare-fun x8 () Int)
-(assert (= (* (* (* (* (* (* (* x0 x1) x2) x3) x4) x5) x6) x7) 25))
+(assert (= (* (* (* (* (* (* (* (* x0 x1) x2) x3) x4) x5) x6) x7) x8) 25))
 (assert (= (* x0 5) 25))
 (check-sat)
