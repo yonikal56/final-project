@@ -134,8 +134,7 @@ Node convertAssertion(TNode n, NodeMap& cache)
     {
       result = current;
     }
-    else if (current.getNumChildren() == 2
-             && (current.getKind() == Kind::NONLINEAR_MULT))
+    else if ((current.getKind() == Kind::NONLINEAR_MULT))
     {
       Assert(cache.find(current[0]) != cache.end());
       result = cache[current[0]];
