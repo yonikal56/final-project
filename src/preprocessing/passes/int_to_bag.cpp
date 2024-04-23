@@ -87,6 +87,13 @@ Node convertIntToBag(int n)
     children.push_back(node);
   }
 
+  if (children.size() == 0)
+  {
+    Node first = NodeManager::currentNM()->mkConstInt(Rational(1));
+    Node second = NodeManager::currentNM()->mkConstInt(Rational(1));
+    return NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, first, second);
+  }
+
   if (children.size() == 1)
   {
     return children.at(0);
