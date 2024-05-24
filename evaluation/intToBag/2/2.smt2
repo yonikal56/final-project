@@ -1,11 +1,14 @@
 ; COMMAND-LINE: --solve-int-as-bag
 ; EXPECT: unsat
 (set-logic ALL)
-(set-info :status sat)
+(set-info :status unsat)
 (set-option :incremental false)
 (declare-fun x0 () Int)
 (declare-fun x1 () Int)
 (declare-fun x2 () Int)
+(assert (>= x0 0))
+(assert (>= x1 0))
+(assert (>= x2 0))
 (assert (= (* (* x0 x1) x2) 25))
 (assert (distinct x0 25))
 (assert (distinct x1 25))

@@ -5,6 +5,8 @@
 (set-option :incremental false)
 (declare-fun x0 () Int)
 (declare-fun x1 () Int)
+(assert (>= x0 0))
+(assert (>= x1 0))
 (assert (= (* x0 x1) 15))
 (assert (distinct x0 15))
 (assert (distinct x1 15))

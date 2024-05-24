@@ -54,6 +54,11 @@ Node convertIntToBag(int n)
   std::vector<Node> children;
   std::map<int, int> nums;
 
+  if (n == 0)
+  {
+    n = 1;
+  }
+
   // Print the number of 2s that divide n
   while (n % 2 == 0)
   {
@@ -112,6 +117,9 @@ Node convertIntToBag(int n)
 
 Node convertAssertion(TNode n, NodeMap& cache)
 {
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+
   for (TNode current :
        NodeDfsIterable(n, VisitOrder::POSTORDER, [&cache](TNode nn) {
          return cache.count(nn) > 0;
@@ -120,8 +128,12 @@ Node convertAssertion(TNode n, NodeMap& cache)
     Node result;
     Trace("int-to-bags") << toString(current.getKind()) << current.toString()
                          << to_string(current.getNumChildren()) << std::endl;
-    NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
+
+    if (current.getKind() == Kind::GEQ)
+    {
+      Trace("int-to-bags") << "here" << current.getName() << std::endl;
+      return nm->mkConst<bool>(true);;
+    }
 
     if (current.isVar() && current.getType() == nm->integerType())
     {
