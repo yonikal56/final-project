@@ -8,3 +8,8 @@ Tests ideas:
 3. like 2 but all different from each other
 4. like 1 but for a prime number
 5. like 2 but for a prime number
+
+more:
+1. multiplication of 2/more variables equals to one of them
+2. the same but with the others different from the result
+3. x|y and y|z => x|z
