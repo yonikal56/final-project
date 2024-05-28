@@ -131,6 +131,7 @@ Node convertAssertion(TNode n, NodeMap& cache)
 
     if (current.getKind() == Kind::GEQ)
     {
+      Assert(current[1].getConst<Rational>() == 1);
       Trace("int-to-bags") << "here" << current.getName() << std::endl;
       return nm->mkConst<bool>(true);;
     }
