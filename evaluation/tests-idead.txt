@@ -16,6 +16,5 @@ more:
 
 
 TODO:
--all variables should be >= 1, otherwise print error (logic-exception)
--assert 1 on GEQ and change assertion to be not empty bag
+-change assertion to be not empty bag
 -x|y and y|z => x|z

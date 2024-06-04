@@ -16,6 +16,8 @@
 #include "preprocessing/passes/int_to_bag.h"
 
 #include <cmath>
+#include <vector>
+#include <algorithm>
 
 #include "base/check.h"
 #include "expr/node.h"
@@ -119,6 +121,27 @@ Node convertAssertion(TNode n, NodeMap& cache)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
+  vector<Node> vars;
+  for (TNode current :
+       NodeDfsIterable(n, VisitOrder::POSTORDER, [&cache](TNode nn) {
+         return cache.count(nn) > 0;
+       }))
+  {
+    if (current.isVar() && current.getType() == nm->integerType())
+    {
+      vars.push_back(current);
+    }
+    if (current.getKind() == Kind::GEQ)
+    {
+      vars.erase(remove(vars.begin(), vars.end(), current[0]), vars.end());
+    }
+  }
+
+  if (!vars.empty())
+  {
+      throw LogicException("Int to bag require all variables to be >= 1");
+  }
+
 
   for (TNode current :
        NodeDfsIterable(n, VisitOrder::POSTORDER, [&cache](TNode nn) {
@@ -132,11 +155,10 @@ Node convertAssertion(TNode n, NodeMap& cache)
     if (current.getKind() == Kind::GEQ)
     {
       Assert(current[1].getConst<Rational>() == 1);
-      Trace("int-to-bags") << "here" << current.getName() << std::endl;
-      return nm->mkConst<bool>(true);;
+      //result = nm->mkNode(Kind::DISTINCT, cache[current[0]], nm->mkConst(Kind::BAG_EMPTY));
+      result = nm->mkNode(Kind::DISTINCT, cache[current[0]], nm->mkConst(Kind::BAG_EMPTY));
     }
-
-    if (current.isVar() && current.getType() == nm->integerType())
+    else if (current.isVar() && current.getType() == nm->integerType())
     {
       result = sm->mkDummySkolem("__intToBag_var",
                                  nm->mkBagType(current.getType()),
