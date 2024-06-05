@@ -22,6 +22,7 @@
 #include "base/check.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "expr/emptybag.h"
 #include "expr/node_traversal.h"
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
@@ -130,6 +131,7 @@ Node convertAssertion(TNode n, NodeMap& cache)
     if (current.isVar() && current.getType() == nm->integerType())
     {
       vars.push_back(current);
+
     }
     if (current.getKind() == Kind::GEQ)
     {
@@ -149,14 +151,15 @@ Node convertAssertion(TNode n, NodeMap& cache)
        }))
   {
     Node result;
-    Trace("int-to-bags") << toString(current.getKind()) << current.toString()
+    Trace("int-to-bags") << toString(current.getKind()) << "," << current.toString() << ","
                          << to_string(current.getNumChildren()) << std::endl;
 
     if (current.getKind() == Kind::GEQ)
     {
       Assert(current[1].getConst<Rational>() == 1);
-      //result = nm->mkNode(Kind::DISTINCT, cache[current[0]], nm->mkConst(Kind::BAG_EMPTY));
-      result = nm->mkNode(Kind::DISTINCT, cache[current[0]], nm->mkConst(Kind::BAG_EMPTY));
+      Trace("int-to-bags") << current[0].toString() << std::endl;
+      result = nm->mkNode(Kind::DISTINCT, cache[current[0]], nm->mkConst(EmptyBag(current[1].getType())));
+      //result = nm->mkNode(Kind::DISTINCT, cache[current[0]], current[1]);
     }
     else if (current.isVar() && current.getType() == nm->integerType())
     {

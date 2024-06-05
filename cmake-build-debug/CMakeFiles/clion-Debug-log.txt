@@ -1,0 +1,79 @@
+/home/yoni/.cache/JetBrains/RemoteDev/dist/0a55911a5a2e1_CLion-2024.1.1/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/home/yoni/.cache/JetBrains/RemoteDev/dist/0a55911a5a2e1_CLion-2024.1.1/bin/ninja/linux/x64/ninja -G Ninja -S /home/yoni/final-project -B /home/yoni/final-project/cmake-build-debug
+-- The C compiler identification is GNU 11.4.0
+-- The CXX compiler identification is GNU 11.4.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found Git: /usr/bin/git (found version "2.34.1") 
+fatal: No names found, cannot describe anything.
+-- Building Debug build
+-- Performing Test HAVE_C_FLAG_fno_inline
+-- Performing Test HAVE_C_FLAG_fno_inline - Success
+-- Configuring with C flag '-fno-inline'
+-- Performing Test HAVE_CXX_FLAG_fno_inline
+-- Performing Test HAVE_CXX_FLAG_fno_inline - Success
+-- Configuring with CXX flag '-fno-inline'
+-- Performing Test HAVE_C_FLAG_Og
+-- Performing Test HAVE_C_FLAG_Og - Success
+-- Configuring with C flag '-Og'
+-- Performing Test HAVE_CXX_FLAG_Og
+-- Performing Test HAVE_CXX_FLAG_Og - Success
+-- Configuring with CXX flag '-Og'
+-- Performing Test HAVE_C_FLAG_Wall
+-- Performing Test HAVE_C_FLAG_Wall - Success
+-- Configuring with C flag '-Wall'
+-- Performing Test HAVE_CXX_FLAG_Wall
+-- Performing Test HAVE_CXX_FLAG_Wall - Success
+-- Configuring with CXX flag '-Wall'
+-- Performing Test HAVE_C_FLAG_Wunused_private_field
+-- Performing Test HAVE_C_FLAG_Wunused_private_field - Failed
+-- Performing Test HAVE_CXX_FLAG_Wunused_private_field
+-- Performing Test HAVE_CXX_FLAG_Wunused_private_field - Failed
+-- Performing Test HAVE_C_FLAG_fexceptions
+-- Performing Test HAVE_C_FLAG_fexceptions - Success
+-- Configuring with C flag '-fexceptions'
+-- Performing Test HAVE_CXX_FLAG_Wsuggest_override
+-- Performing Test HAVE_CXX_FLAG_Wsuggest_override - Success
+-- Configuring with CXX flag '-Wsuggest-override'
+-- Performing Test HAVE_CXX_FLAG_Wnon_virtual_dtor
+-- Performing Test HAVE_CXX_FLAG_Wnon_virtual_dtor - Success
+-- Configuring with CXX flag '-Wnon-virtual-dtor'
+-- Performing Test HAVE_C_FLAG_Wimplicit_fallthrough
+-- Performing Test HAVE_C_FLAG_Wimplicit_fallthrough - Success
+-- Configuring with C flag '-Wimplicit-fallthrough'
+-- Performing Test HAVE_CXX_FLAG_Wimplicit_fallthrough
+-- Performing Test HAVE_CXX_FLAG_Wimplicit_fallthrough - Success
+-- Configuring with CXX flag '-Wimplicit-fallthrough'
+-- Performing Test HAVE_C_FLAG_Wshadow
+-- Performing Test HAVE_C_FLAG_Wshadow - Success
+-- Configuring with C flag '-Wshadow'
+-- Performing Test HAVE_CXX_FLAG_Wshadow
+-- Performing Test HAVE_CXX_FLAG_Wshadow - Success
+-- Configuring with CXX flag '-Wshadow'
+-- Performing Test HAVE_CXX_FLAG_fno_extern_tls_init
+-- Performing Test HAVE_CXX_FLAG_fno_extern_tls_init - Success
+-- Configuring with CXX flag '-fno-extern-tls-init'
+-- Performing Test HAVE_CXX_FLAG_Wclass_memaccess
+-- Performing Test HAVE_CXX_FLAG_Wclass_memaccess - Success
+-- Configuring with CXX flag '-Wno-class-memaccess'
+-- Using GNU gold linker.
+-- Performing Test HAVE_CXX_FLAGfaccess_control
+-- Performing Test HAVE_CXX_FLAGfaccess_control - Success
+-- Found Python: /usr/bin/python3.10 (found version "3.10.12") found components: Interpreter 
+CMake Error at cmake/deps-helper.cmake:74 (message):
+  Could not find the required dependency GMP (>= 6.3) in the system.  Please
+  install it yourself or use --auto-download to let us download and build it
+  for you.
+Call Stack (most recent call first):
+  cmake/FindGMP.cmake:70 (check_auto_download)
+  CMakeLists.txt:362 (find_package)
+
+
+-- Configuring incomplete, errors occurred!
