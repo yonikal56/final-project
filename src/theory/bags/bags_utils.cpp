@@ -40,7 +40,9 @@ Node BagsUtils::computeDisjointUnion(TypeNode bagType,
   NodeManager* nm = NodeManager::currentNM();
   if (bags.empty())
   {
-    return nm->mkConst(EmptyBag(bagType));
+    Node emptyPart = nm->mkConst(EmptyBag(bagType));
+    Assert(emptyPart.getType().isBag());
+    return emptyPart;
   }
   if (bags.size() == 1)
   {
@@ -979,6 +981,7 @@ Node BagsUtils::evaluateGroup(TNode n)
   {
     // add an empty part
     Node emptyPart = nm->mkConst(EmptyBag(bagType));
+    Assert(emptyPart.getType().isBag());
     parts[emptyPart] = Rational(1);
   }
   Node ret = constructConstantBagFromElements(partitionType, parts);

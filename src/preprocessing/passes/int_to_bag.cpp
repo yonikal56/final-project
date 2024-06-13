@@ -54,12 +54,14 @@ void addToMap(std::map<int, int> &map, int newNum) {
 
 Node convertIntToBag(int n)
 {
+  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> children;
   std::map<int, int> nums;
+  Node emptyPart = nm->mkConst(EmptyBag(nm->mkBagType(nm->integerType())));
 
-  if (n == 0)
+  if (n == 1)
   {
-    n = 1;
+    return emptyPart;
   }
 
   // Print the number of 2s that divide n
@@ -156,10 +158,7 @@ Node convertAssertion(TNode n, NodeMap& cache)
 
     if (current.getKind() == Kind::GEQ)
     {
-      Assert(current[1].getConst<Rational>() == 1);
-      Trace("int-to-bags") << current[0].toString() << std::endl;
-      result = nm->mkNode(Kind::DISTINCT, cache[current[0]], nm->mkConst(EmptyBag(current[1].getType())));
-      //result = nm->mkNode(Kind::DISTINCT, cache[current[0]], current[1]);
+      result = nm->mkConst(true);
     }
     else if (current.isVar() && current.getType() == nm->integerType())
     {

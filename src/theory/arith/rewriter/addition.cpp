@@ -185,8 +185,6 @@ void addToSum(Sum& sum, TNode n, bool negate)
     multiplicity = Integer(-1);
   }
 
-  std::cout << sum << ";;;;" << n << std::endl;
-
   addToProduct(monomial, multiplicity, n);
   addToSum(sum, mkNonlinearMult(monomial), multiplicity);
 }
