@@ -16,5 +16,4 @@ more:
 
 
 TODO:
--change assertion to be not empty bag
 -x|y and y|z => x|z

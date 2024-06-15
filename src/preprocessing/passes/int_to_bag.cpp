@@ -54,6 +54,7 @@ void addToMap(std::map<int, int> &map, int newNum) {
 
 Node convertIntToBag(int n)
 {
+  Assert(n != 0);
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> children;
   std::map<int, int> nums;
@@ -99,9 +100,7 @@ Node convertIntToBag(int n)
 
   if (children.size() == 0)
   {
-    Node first = NodeManager::currentNM()->mkConstInt(Rational(1));
-    Node second = NodeManager::currentNM()->mkConstInt(Rational(1));
-    return NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, first, second);
+    return emptyPart;
   }
 
   if (children.size() == 1)
@@ -120,31 +119,10 @@ Node convertIntToBag(int n)
   return result;
 }
 
-Node convertAssertion(TNode n, NodeMap& cache)
+Node convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  vector<Node> vars;
-  for (TNode current :
-       NodeDfsIterable(n, VisitOrder::POSTORDER, [&cache](TNode nn) {
-         return cache.count(nn) > 0;
-       }))
-  {
-    if (current.isVar() && current.getType() == nm->integerType())
-    {
-      vars.push_back(current);
-
-    }
-    if (current.getKind() == Kind::GEQ)
-    {
-      vars.erase(remove(vars.begin(), vars.end(), current[0]), vars.end());
-    }
-  }
-
-  if (!vars.empty())
-  {
-      throw LogicException("Int to bag require all variables to be >= 1");
-  }
 
 
   for (TNode current :
@@ -158,19 +136,19 @@ Node convertAssertion(TNode n, NodeMap& cache)
 
     if (current.getKind() == Kind::GEQ)
     {
+      vars.erase(remove(vars.begin(), vars.end(), current[0]), vars.end());
+      Assert(current[1].getConst<Rational>().getNumerator() == 1);
       result = nm->mkConst(true);
     }
     else if (current.isVar() && current.getType() == nm->integerType())
     {
+      vars.push_back(current);
       result = sm->mkDummySkolem("__intToBag_var",
                                  nm->mkBagType(current.getType()),
                                  "Variable introduced in intToBag pass");
     }
     else if (current.isConst() && current.getType() == nm->integerType())
     {
-      Trace("int-to-bags") << "Num val:"
-                           << current.getConst<Rational>().getNumerator()
-                           << std::endl;
       result = convertIntToBag(current.getConst<Rational>().getNumerator().getSignedInt());
     }
 
@@ -223,10 +201,15 @@ PreprocessingPassResult IntToBag::applyInternal(
 {
   NodeManager::currentNM()->mkConstInt(Rational(2));
   NodeMap cache;
+  vector<Node> vars;
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     assertionsToPreprocess->replace(
-        i, convertAssertion((*assertionsToPreprocess)[i], cache));
+        i, convertAssertion((*assertionsToPreprocess)[i], cache, vars));
+  }
+  if (!vars.empty())
+  {
+    throw LogicException("Int to bag require all variables to be >= 1");
   }
 
   return PreprocessingPassResult::NO_CONFLICT;
