@@ -56,6 +56,8 @@ set(regress_0_tests
   regress0/arith/integers/arith-int-042.min.cvc.smt2
   regress0/arith/integers/arith-int-079.cvc.smt2
   regress0/arith/integers/arith-interval.cvc.smt2
+  regress0/arith/integers/arith-int-multiply1.cvc.smt2
+  regress0/arith/integers/arith-int-multiply2.cvc.smt2
   regress0/arith/integers/issue6146-stale-vars.smt2
   regress0/arith/issue1399.smt2
   regress0/arith/issue3412.smt2

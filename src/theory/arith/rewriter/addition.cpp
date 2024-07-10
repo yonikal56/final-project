@@ -184,6 +184,7 @@ void addToSum(Sum& sum, TNode n, bool negate)
   {
     multiplicity = Integer(-1);
   }
+
   addToProduct(monomial, multiplicity, n);
   addToSum(sum, mkNonlinearMult(monomial), multiplicity);
 }

@@ -1,3 +1,5 @@
+; COMMAND-LINE: --solve-int-as-bag
+; EXPECT: unsat
 (set-logic ALL)
 (set-option :incremental false)
 (declare-fun x0 () Int)

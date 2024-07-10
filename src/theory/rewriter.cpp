@@ -35,8 +35,8 @@ namespace theory {
 static TheoryId theoryOf(TNode node) {
   if (node.getKind() == Kind::EQUAL)
   {
-    // Equality is owned by the theory that owns the domain
     return Theory::theoryOf(node[0].getType());
+    // Equality is owned by the theory that owns the domain
   }
   // Regular nodes are owned by the kind
   return kindToTheoryId(node.getKind());
