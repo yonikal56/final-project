@@ -99,7 +99,11 @@ cvc5_option(ENABLE_TRACING        "Enable tracing")
 cvc5_option(ENABLE_UNIT_TESTING   "Enable unit testing")
 cvc5_option(ENABLE_VALGRIND       "Enable valgrind instrumentation")
 cvc5_option(ENABLE_AUTO_DOWNLOAD  "Enable automatic download of dependencies")
+cvc5_option(USE_PYTHON_VENV       "Install Python dependencies in virtual environment")
 cvc5_option(ENABLE_IPO            "Enable interprocedural optimization")
+
+cvc5_set_option(USE_PYTHON_VENV ON)
+
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(ENABLE_COVERAGE         "Enable support for gcov coverage testing")
@@ -142,6 +146,10 @@ option(BUILD_GMP "Build GMP from sources")
 # Link against static system libraries
 cvc5_option(STATIC_BINARY "Link against static system libraries \
 (enabled by default for static builds)")
+
+option(SKIP_COMPRESS_DEBUG "Skip compression of debug symbols")
+option(SKIP_SET_RPATH      "Skip setting of rpath")
+option(USE_DEFAULT_LINKER  "Use default linker")
 
 # Custom flags for WebAssembly compilation
 set(WASM_FLAGS "" CACHE STRING "Link flags for the WebAssembly binary generation")
@@ -218,11 +226,13 @@ include(Config${CMAKE_BUILD_TYPE})
 add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
 add_check_c_cxx_flag("-Wall")
 add_check_c_cxx_supression_flag("-Wno-unused-private-field")
+add_check_c_cxx_supression_flag("-Wno-dangling-reference")
 add_check_c_flag("-fexceptions")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")
 add_check_c_cxx_flag("-Wshadow")
+add_check_c_cxx_flag("-fno-operator-names")
 
 # Assume no dynamic initialization of thread-local variables in non-defining
 # translation units. This option should result in better performance and works
@@ -239,7 +249,7 @@ endif ()
 
 # Changing the default linker on MSYS prevents the build system from
 # using the GMP system library if available
-if (NOT ("${CMAKE_GENERATOR}" STREQUAL "MSYS Makefiles"))
+if (NOT ("${CMAKE_GENERATOR}" STREQUAL "MSYS Makefiles") AND NOT USE_DEFAULT_LINKER)
   #-----------------------------------------------------------------------------#
   # Use ld.mold if available, otherwise use ld.gold if available
 
@@ -309,7 +319,13 @@ endif()
 #
 # More information on RPATH in CMake:
 # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
+if(NOT SKIP_SET_RPATH)
+  if (APPLE)
+    SET(CMAKE_INSTALL_RPATH "@loader_path/../${CMAKE_INSTALL_LIBDIR}")
+  else()
+    SET(CMAKE_INSTALL_RPATH "\${ORIGIN}/../${CMAKE_INSTALL_LIBDIR}")
+  endif()
+endif()
 
 # Set visibility to default if unit tests are enabled. If unit tests are
 # enabled, we also check if we can execute white box unit tests (some versions
@@ -353,9 +369,64 @@ else()
   endif()
 endif()
 
-if(DEFINED BUILD_BINDINGS_PYTHON_VERSION) 
-  find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
+# Find a Python interpreter on the system. It serves two exclusive purposes:
+# either to be used when the '--auto-download' option is not specified, or
+# to create a virtual environment when the '--auto-download' option is given.
+# In the latter case, it is also used to install the Python bindings (if built).
+if(DEFINED BUILD_BINDINGS_PYTHON_VERSION)
+  find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION}
+    EXACT COMPONENTS Interpreter REQUIRED
+  )
 else()
+  find_package(Python COMPONENTS Interpreter REQUIRED)
+endif()
+
+# Keep the PATH to the Python binary before setting venv.
+# Use a CACHE variable to remember the original value.
+# We use this path in the installation step of the Python bindings.
+set(Python_BASE_EXECUTABLE "${Python_EXECUTABLE}"
+    CACHE STRING "Base Python executable")
+
+macro(create_venv)
+  message(STATUS "Creating Python virtual environment")
+  # Use packages installed in the base installation if they're already present
+  execute_process (
+    COMMAND
+      "${Python_EXECUTABLE}" -m venv --system-site-packages "${VENV_PATH}"
+    RESULT_VARIABLE VENV_CMD_EXIT_CODE
+  )
+  if(VENV_CMD_EXIT_CODE)
+    message(FATAL_ERROR "Could not create Python virtual environment")
+  endif()
+endmacro()
+
+if(ENABLE_AUTO_DOWNLOAD AND USE_PYTHON_VENV)
+  # Set up Python venv if one doesn't exist already
+  set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
+  if(NOT EXISTS ${VENV_PATH})
+    find_package(Pip REQUIRED)
+    create_venv()
+  else()
+    if(NOT (EXISTS ${VENV_PATH}/bin/pip OR EXISTS ${VENV_PATH}/Scripts/pip.exe))
+      # This situation may be possible if cvc5 was built before 715f649
+      execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${VENV_PATH})
+      find_package(Pip REQUIRED)
+      create_venv()
+    endif()
+  endif()
+
+  # Set up variables to find Python within the virtual environment
+  set(ENV{VIRTUAL_ENV} "${VENV_PATH}")
+  unset(Python_EXECUTABLE CACHE)
+  if(EXISTS ${VENV_PATH}/bin/python3)
+    set(Python_EXECUTABLE ${VENV_PATH}/bin/python3)
+  elseif(EXISTS ${VENV_PATH}/Scripts/python.exe)
+    set(Python_EXECUTABLE ${VENV_PATH}/Scripts/python.exe)
+  else()
+    message(FATAL_ERROR "Could not find Python interpreter in venv")
+  endif()
+
+  # Find the Python interpreter within the virtual environment
   find_package(Python COMPONENTS Interpreter REQUIRED)
 endif()
 
@@ -408,7 +479,9 @@ endif()
 
 if(ENABLE_DEBUG_SYMBOLS)
   add_check_c_cxx_flag("-ggdb3")
-  add_check_c_cxx_flag("-gz")
+  if(NOT SKIP_COMPRESS_DEBUG)
+    add_check_c_cxx_flag("-gz")
+  endif()
 endif()
 
 if(ENABLE_COMP_INC_TRACK)
@@ -453,9 +526,6 @@ if(USE_CRYPTOMINISAT)
   # CryptoMiniSat requires pthreads support
   set(THREADS_PREFER_PTHREAD_FLAG ON)
   find_package(Threads REQUIRED)
-  if(THREADS_HAVE_PTHREAD_ARG)
-    add_c_cxx_flag(-pthread)
-  endif()
   find_package(CryptoMiniSat 5.8 REQUIRED)
   add_definitions(-DCVC5_USE_CRYPTOMINISAT)
 endif()
@@ -480,6 +550,7 @@ else()
 endif()
 
 if(USE_COCOA)
+  set(GPL_LIBS "${GPL_LIBS} cocoa")
   find_package(CoCoA REQUIRED 0.99711)
   add_definitions(-DCVC5_USE_COCOA)
 endif()
@@ -498,7 +569,8 @@ if(GPL_LIBS)
   if(NOT ENABLE_GPL)
     message(FATAL_ERROR
       "Bad configuration detected: BSD-licensed code only, but also requested "
-      "GPLed libraries: ${GPL_LIBS}")
+      "GPLed libraries: ${GPL_LIBS}. (Configure with --gpl to allow GPLed "
+      "libraries.)")
   endif()
   set(CVC5_GPL_DEPS 1)
 endif()

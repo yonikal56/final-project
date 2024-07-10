@@ -98,7 +98,7 @@ if(NOT GMP_FOUND_SYSTEM)
   #     https://github.com/microsoft/vcpkg/issues/22671
   # Many solution attempts have been tried, but none worked.
 
-  # Since makeinfo just builds the documentation for GMP, 
+  # Since makeinfo just builds the documentation for GMP,
   # it is possible to get around this issue by just disabling it:
   set(CONFIGURE_ENV env "MAKEINFO=true")
 
@@ -107,7 +107,7 @@ if(NOT GMP_FOUND_SYSTEM)
       --host=${TOOLCHAIN_PREFIX}
       --build=${CMAKE_HOST_SYSTEM_PROCESSOR})
 
-    set(CONFIGURE_ENV ${CMAKE_COMMAND} -E
+    set(CONFIGURE_ENV ${CONFIGURE_ENV} ${CMAKE_COMMAND} -E
       env "CC_FOR_BUILD=cc")
     if (CMAKE_CROSSCOMPILING_MACOS)
       set(CONFIGURE_ENV
@@ -125,7 +125,7 @@ if(NOT GMP_FOUND_SYSTEM)
     GMP-EP
     ${COMMON_EP_CONFIG}
     URL https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.bz2
-    URL_HASH SHA1=32d21c4fae046de45e8fce37bf4002236d283b71
+    URL_HASH SHA256=ac28211a7cfb609bae2e2c8d6058d66c8fe96434f740cf6fe2e47b000d1c20cb
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV}
           ${CONFIGURE_CMD_WRAPPER} ${SHELL} <SOURCE_DIR>/configure
@@ -164,4 +164,21 @@ if(GMP_FOUND_SYSTEM)
 else()
   message(STATUS "Building GMP ${GMP_VERSION}: ${GMP_LIBRARIES}")
   add_dependencies(GMP GMP-EP)
+  # Static builds install the GMP static libraries.
+  # These libraries are required to compile a program that
+  # uses the cvc5 static library.
+  # On Windows, this installs the import libraries (LIB) and
+  # the DLL libraries (BIN)
+  install(
+    DIRECTORY ${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/
+    TYPE LIB
+    FILES_MATCHING PATTERN libgmp* PATTERN gmp*.pc
+  )
+  if(BUILD_SHARED_LIBS AND WIN32)
+    install(
+      DIRECTORY ${DEPS_BASE}/${CMAKE_INSTALL_BINDIR}/
+      TYPE BIN
+      FILES_MATCHING PATTERN libgmp*
+    )
+  endif()
 endif()

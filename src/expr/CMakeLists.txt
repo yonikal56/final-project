@@ -33,6 +33,8 @@ libcvc5_add_sources(
   codatatype_bound_variable.h
   elim_shadow_converter.cpp
   elim_shadow_converter.h
+  elim_witness_converter.cpp
+  elim_witness_converter.h
   emptyset.cpp
   emptyset.h
   emptybag.cpp
@@ -69,6 +71,8 @@ libcvc5_add_sources(
   oracle.h
   oracle_caller.cpp
   oracle_caller.h
+  plugin.cpp
+  plugin.h
   sequence.cpp
   sequence.h
   node_visitor.h

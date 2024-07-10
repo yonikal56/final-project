@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
+#include "theory/quantifiers/mbqi_fast_sygus.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
@@ -45,6 +46,11 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
   d_nonClosedKinds.insert(Kind::STORE_ALL);
   d_nonClosedKinds.insert(Kind::CODATATYPE_BOUND_VARIABLE);
   d_nonClosedKinds.insert(Kind::UNINTERPRETED_SORT_VALUE);
+
+  if (options().quantifiers.mbqiFastSygus)
+  {
+    d_msenum.reset(new MbqiFastSygus(env, *this));
+  }
 }
 
 void InstStrategyMbqi::reset_round(Theory::Effort e) { d_quantChecked.clear(); }
@@ -106,7 +112,7 @@ void InstStrategyMbqi::process(Node q)
   Subs skolems;
   for (const Node& v : q[0])
   {
-    Node k = sm->mkPurifySkolem(v);
+    Node k = mkMbqiSkolem(v);
     skolems.add(v, k);
     // do not take its model value (which does not exist) in conversion below
     tmpConvertMap[k] = k;
@@ -237,7 +243,8 @@ void InstStrategyMbqi::process(Node q)
 
   // get the model values for skolems
   std::vector<Node> terms;
-  getModelFromSubsolver(*mbqiChecker.get(), skolems.d_subs, terms);
+  modelValueFromQuery(
+      q, query, *mbqiChecker.get(), skolems.d_subs, terms, mvToFreshVar);
   Assert(skolems.size() == terms.size());
   if (TraceIsOn("mbqi"))
   {
@@ -442,6 +449,26 @@ Node InstStrategyMbqi::convertToQuery(
   return cmap[cur];
 }
 
+
+void InstStrategyMbqi::modelValueFromQuery(
+    const Node& q,
+    const Node& query,
+    SolverEngine& smt,
+    const std::vector<Node>& vars,
+    std::vector<Node>& mvs,
+    const std::map<Node, Node>& mvToFreshVar)
+{
+  getModelFromSubsolver(smt, vars, mvs);
+  if (options().quantifiers.mbqiFastSygus)
+  {
+    std::vector<Node> smvs(mvs);
+    if (d_msenum->constructInstantiation(q, query, vars, smvs, mvToFreshVar))
+    {
+      mvs = smvs;
+    }
+  }
+}
+
 Node InstStrategyMbqi::convertFromModel(
     Node t,
     std::unordered_map<Node, Node>& cmap,
@@ -546,6 +573,13 @@ Node InstStrategyMbqi::convertFromModel(
 
   Assert(cmap.find(cur) != cmap.end());
   return cmap[cur];
+}
+
+Node InstStrategyMbqi::mkMbqiSkolem(const Node& t)
+{
+  SkolemManager* skm = nodeManager()->getSkolemManager();
+  return skm->mkInternalSkolemFunction(
+      InternalSkolemId::MBQI_INPUT, t.getType(), {t});
 }
 
 }  // namespace quantifiers

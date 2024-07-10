@@ -49,6 +49,7 @@ class ProofNode;
 class Env;
 class UnsatCore;
 class StatisticsRegistry;
+class Plugin;
 class Printer;
 class ResourceManager;
 struct InstantiationList;
@@ -484,17 +485,23 @@ class CVC5_EXPORT SolverEngine
   void declareOracleFun(
       Node var, std::function<std::vector<Node>(const std::vector<Node>&)> fn);
   /**
-   * Simplify a formula without doing "much" work.  Does not involve
-   * the SAT Engine in the simplification, but uses the current
-   * definitions, assertions, and the current partial model, if one
-   * has been constructed.  It also involves theory normalization.
+   * Adds plugin to the theory engine of this solver engine.
    *
-   * @throw TypeCheckingException, LogicException
-   *
-   * @todo (design) is this meant to give an equivalent or an
-   * equisatisfiable formula?
+   * @param p The plugin to add.
    */
-  Node simplify(const Node& e);
+  void addPlugin(Plugin* p);
+  /**
+   * Simplify a term or formula based on rewriting and (optionally) applying
+   * substitutions for solved variables.
+   *
+   * If applySubs is true, then for example, if `(= x 0)` was asserted to this
+   * solver, this method may replace occurrences of `x` with `0`.
+   *
+   * @param t The term to simplify.
+   * @param applySubs Whether to apply substitutions for solved variables.
+   * @return The simplified term.
+   */
+  Node simplify(const Node& e, bool applySubs);
 
   /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT
@@ -1031,18 +1038,6 @@ class CVC5_EXPORT SolverEngine
   /** Vector version of above. */
   void ensureWellFormedTerms(const std::vector<Node>& ns,
                              const std::string& src) const;
-  /**
-   * Convert preprocessed assertions to the input formulas that imply them. In
-   * detail, this converts a set of preprocessed assertions to a set of input
-   * assertions based on the proof of preprocessing. It is used for unsat cores
-   * and timeout cores.
-   *
-   * @param ppa The preprocessed assertions to convert
-   * @param isInternal Used for debug printing unsat cores, i.e. when isInternal
-   * is false, we print debug information.
-   */
-  std::vector<Node> convertPreprocessedToInput(const std::vector<Node>& ppa,
-                                               bool isInternal);
 
   /**
    * Prints a proof node using a proof format of choice.
@@ -1121,6 +1116,10 @@ class CVC5_EXPORT SolverEngine
   bool d_safeOptsSetRegularOption;
   /** The regular option we set (for --safe-options) */
   std::string d_safeOptsRegularOption;
+  /** The value of the regular option we set (for --safe-options) */
+  std::string d_safeOptsRegularOptionValue;
+  /** Was the option already the default setting */
+  bool d_safeOptsSetRegularOptionToDefault;
 
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;

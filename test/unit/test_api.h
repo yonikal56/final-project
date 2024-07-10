@@ -25,11 +25,23 @@ namespace test {
 
 class TestApi : public ::testing::Test
 {
-  void SetUp() override { d_solver.reset(new cvc5::Solver(d_tm)); }
-
  protected:
+  void SetUp() override
+  {
+    d_solver.reset(new cvc5::Solver(d_tm));
+    d_bool = d_tm.getBooleanSort();
+    d_int = d_tm.getIntegerSort();
+    d_real = d_tm.getRealSort();
+    d_string = d_tm.getStringSort();
+    d_uninterpreted = d_tm.mkUninterpretedSort("u");
+  }
   cvc5::TermManager d_tm;
   std::unique_ptr<cvc5::Solver> d_solver;
+  Sort d_bool;
+  Sort d_int;
+  Sort d_real;
+  Sort d_string;
+  Sort d_uninterpreted;
 };
 
 }  // namespace test

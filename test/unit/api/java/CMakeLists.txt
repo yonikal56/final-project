@@ -35,6 +35,7 @@ set(java_test_src_files
   ${CMAKE_CURRENT_SOURCE_DIR}/SymbolManagerTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/SynthResultTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/TermTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/TermManagerTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ProofTest.java
 )
 
@@ -81,10 +82,11 @@ cvc5_add_java_api_test(SortTest)
 cvc5_add_java_api_test(SymbolManagerTest)
 cvc5_add_java_api_test(SynthResultTest)
 cvc5_add_java_api_test(TermTest)
+cvc5_add_java_api_test(TermManagerTest)
 cvc5_add_java_api_test(ProofTest)
 
 # suppress deprecated warnings to not error in CI
 set_source_files_properties(UncoveredTest.cpp
   PROPERTIES COMPILE_OPTIONS
   "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
-cvc5_add_unit_test_white(UncoveredTest api/java)
+cvc5_add_unit_test_black(UncoveredTest api/java)

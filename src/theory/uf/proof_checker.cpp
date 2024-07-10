@@ -37,7 +37,6 @@ void UfProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::FALSE_ELIM, this);
   pc->registerChecker(ProofRule::HO_CONG, this);
   pc->registerChecker(ProofRule::HO_APP_ENCODE, this);
-  pc->registerChecker(ProofRule::BETA_REDUCE, this);
 }
 
 Node UfProofRuleChecker::checkInternal(ProofRule id,
@@ -130,7 +129,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
       lchildren.push_back(eqp[0]);
       rchildren.push_back(eqp[1]);
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node l = nm->mkNode(k, lchildren);
     Node r = nm->mkNode(k, rchildren);
     return l.eqNode(r);
@@ -139,7 +138,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    Node trueNode = NodeManager::currentNM()->mkConst(true);
+    Node trueNode = nodeManager()->mkConst(true);
     return children[0].eqNode(trueNode);
   }
   else if (id == ProofRule::TRUE_ELIM)
@@ -161,7 +160,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    Node falseNode = NodeManager::currentNM()->mkConst(false);
+    Node falseNode = nodeManager()->mkConst(false);
     return children[0][0].eqNode(falseNode);
   }
   else if (id == ProofRule::FALSE_ELIM)
@@ -194,7 +193,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
       lchildren.push_back(eqp[0]);
       rchildren.push_back(eqp[1]);
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node l = nm->mkNode(k, lchildren);
     Node r = nm->mkNode(k, rchildren);
     return l.eqNode(r);
@@ -204,29 +203,6 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     Assert(args.size() == 1);
     Node ret = TheoryUfRewriter::getHoApplyForApplyUf(args[0]);
     return args[0].eqNode(ret);
-  }
-  else if (id == ProofRule::BETA_REDUCE)
-  {
-    Assert(args.size() >= 2);
-    Node lambda = args[0];
-    if (lambda.getKind() != Kind::LAMBDA)
-    {
-      return Node::null();
-    }
-    std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
-    std::vector<TNode> subs(args.begin() + 1, args.end());
-    if (vars.size() != subs.size())
-    {
-      return Node::null();
-    }
-    NodeManager* nm = NodeManager::currentNM();
-    std::vector<Node> appArgs;
-    appArgs.push_back(lambda);
-    appArgs.insert(appArgs.end(), subs.begin(), subs.end());
-    Node app = nm->mkNode(Kind::APPLY_UF, appArgs);
-    Node ret = lambda[1].substitute(
-        vars.begin(), vars.end(), subs.begin(), subs.end());
-    return app.eqNode(ret);
   }
   // no rule
   return Node::null();

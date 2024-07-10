@@ -34,14 +34,13 @@ void ArraysProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::ARRAYS_READ_OVER_WRITE_CONTRA, this);
   pc->registerChecker(ProofRule::ARRAYS_READ_OVER_WRITE_1, this);
   pc->registerChecker(ProofRule::ARRAYS_EXT, this);
-  pc->registerChecker(ProofRule::ARRAYS_EQ_RANGE_EXPAND, this);
 }
 
 Node ArraysProofRuleChecker::checkInternal(ProofRule id,
                                            const std::vector<Node>& children,
                                            const std::vector<Node>& args)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (id == ProofRule::ARRAYS_READ_OVER_WRITE)
   {
     Assert(children.size() == 1);
@@ -107,11 +106,6 @@ Node ArraysProofRuleChecker::checkInternal(ProofRule id,
     Node as = nm->mkNode(Kind::SELECT, a, k);
     Node bs = nm->mkNode(Kind::SELECT, b, k);
     return as.eqNode(bs).notNode();
-  }
-  if (id == ProofRule::ARRAYS_EQ_RANGE_EXPAND)
-  {
-    Node expandedEqRange = TheoryArraysRewriter::expandEqRange(args[0]);
-    return args[0].eqNode(expandedEqRange);
   }
   // no rule
   return Node::null();

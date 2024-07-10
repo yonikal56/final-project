@@ -49,13 +49,14 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj);
  * when n = str.++( x, y ), c is { x, y }
  * when n = str.++( x, str.++( y, z ), w ), c is { x, str.++( y, z ), w )
  * when n = x, c is { x }
+ * when n = "", c is { "" }
  *
  * Also applies to regular expressions (re.++ above).
  */
 void getConcat(Node n, std::vector<Node>& c);
 
 /**
- * Make the concatentation from vector c of (string-like or regular
+ * Make the concatenation from vector c of (string-like or regular
  * expression) type tn.
  */
 Node mkConcat(const std::vector<Node>& c, TypeNode tn);
@@ -69,6 +70,15 @@ Node mkPrefix(Node t, Node n);
  * Returns (suf t n), which is (str.substr t n (- (str.len t) n)).
  */
 Node mkSuffix(Node t, Node n);
+
+/**
+ * Returns (str.substr t 0 (- (str.len t) n)).
+ */
+Node mkPrefixExceptLen(Node t, Node n);
+/**
+ * Returns (str.substr t (- (str.len t) n) n).
+ */
+Node mkSuffixOfLen(Node t, Node n);
 
 /**
  * Make a unit, returns either (str.unit n) or (seq.unit n) depending
@@ -183,9 +193,9 @@ bool isSimpleRegExp(Node r);
  */
 void getRegexpComponents(Node r, std::vector<Node>& result);
 
-/** Print the vector n as a concatentation term on output stream out */
+/** Print the vector n as a concatenation term on output stream out */
 void printConcat(std::ostream& out, std::vector<Node>& n);
-/** Print the vector n as a concatentation term on trace given by c */
+/** Print the vector n as a concatenation term on trace given by c */
 void printConcatTrace(std::vector<Node>& n, const char* c);
 
 /** Is k a string-specific kind? */
