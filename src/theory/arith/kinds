@@ -44,6 +44,12 @@ operator ARCCOSECANT 1 "arc cosecant"
 operator ARCSECANT 1 "arc secant"
 operator ARCCOTANGENT 1 "arc cotangent"
 
+operator PRIME 1 "is the number prime"
+operator NUMOFFACTORS 1 "number of prime factors"
+operator FACTORS 1 "factors of number"
+operator GCD 2 "greatest common divisor"
+operator LCM 2 "least common multiple"
+
 operator SQRT 1 "square root"
 
 constant DIVISIBLE_OP \
@@ -165,6 +171,12 @@ typerule ARCCOTANGENT "SimpleTypeRule<RReal, AReal>"
 typerule POW2 "SimpleTypeRule<RInteger, AInteger>"
 typerule INTS_ISPOW2 "SimpleTypeRule<RBool, AInteger>"
 typerule INTS_LOG2 "SimpleTypeRule<RInteger, AInteger>"
+
+typerule PRIME "SimpleTypeRule<RBool, AInteger>"
+typerule NUMOFFACTORS "SimpleTypeRule<RInteger, AInteger>"
+typerule FACTORS "SimpleTypeRule<RInteger, AInteger>"
+typerule GCD ::cvc5::internal::theory::arith::ArithOperatorTypeRule
+typerule LCM ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 
 typerule SQRT "SimpleTypeRule<RReal, AReal>"
 

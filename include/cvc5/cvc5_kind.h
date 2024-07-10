@@ -972,6 +972,14 @@ enum ENUM(Kind)
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
+
+  EVALUE(PRIME),
+  EVALUE(NUMOFFACTORS),
+  EVALUE(FACTORS),
+  EVALUE(GCD),
+  EVALUE(LCM),
+
+
   EVALUE(SQRT),
   /**
    * \rst

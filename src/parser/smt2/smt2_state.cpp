@@ -944,6 +944,13 @@ void Smt2State::setLogic(std::string name)
     addIndexedOperator(Kind::TABLE_AGGREGATE, "table.aggr");
     addIndexedOperator(Kind::TABLE_JOIN, "table.join");
     addIndexedOperator(Kind::TABLE_GROUP, "table.group");
+
+    // operators for prime number using bags
+    addOperator(Kind::PRIME, "is.prime");
+    addOperator(Kind::NUMOFFACTORS, "num.of.factors");
+    addOperator(Kind::FACTORS, "factors");
+    addOperator(Kind::GCD, "gcd");
+    addOperator(Kind::LCM, "lcm");
   }
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))
   {
