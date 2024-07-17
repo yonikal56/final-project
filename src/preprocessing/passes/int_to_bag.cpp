@@ -140,6 +140,27 @@ Node convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
       Assert(current[1].getConst<Rational>().getNumerator() == 1);
       result = nm->mkConst(true);
     }
+    else if (current.getKind() == Kind::PRIME)
+    {
+      Node card = nm->mkNode(Kind::BAG_CARD, cache[current[0]]);
+      result = nm->mkNode(Kind::EQUAL, card, nm->mkConstInt(Rational(1)));
+    }
+    else if (current.getKind() == Kind::FACTORS)
+    {
+      result = nm->mkNode(Kind::BAG_SETOF, cache[current[0]]);
+    }
+    else if (current.getKind() == Kind::NUMOFFACTORS)
+    {
+      result = nm->mkNode(Kind::BAG_CARD, nm->mkNode(Kind::BAG_SETOF, cache[current[0]]));
+    }
+    else if (current.getKind() == Kind::GCD)
+    {
+      result = nm->mkNode(Kind::BAG_DIFFERENCE_SUBTRACT, cache[current[0]], cache[current[1]]);
+    }
+    else if (current.getKind() == Kind::LCM)
+    {
+      result = nm->mkNode(Kind::BAG_UNION_MAX, cache[current[0]], cache[current[1]]);
+    }
     else if (current.isVar() && current.getType() == nm->integerType())
     {
       vars.push_back(current);

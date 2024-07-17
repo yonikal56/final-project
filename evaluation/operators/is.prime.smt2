@@ -1,0 +1,15 @@
+; COMMAND-LINE: --solve-int-as-bag
+; EXPECT: sat
+(set-logic ALL)
+(set-info :status sat)
+(set-option :incremental false)
+(declare-fun x0 () Int)
+(declare-fun x1 () Int)
+(assert (>= x0 1))
+(assert (>= x1 1))
+(assert (= (* x0 x1) 9))
+(assert (distinct x0 3))
+;(assert (is.prime x0))
+;(assert (is.prime x1))
+(assert (is.prime 3))
+(check-sat)

@@ -174,9 +174,9 @@ typerule INTS_LOG2 "SimpleTypeRule<RInteger, AInteger>"
 
 typerule PRIME "SimpleTypeRule<RBool, AInteger>"
 typerule NUMOFFACTORS "SimpleTypeRule<RInteger, AInteger>"
-typerule FACTORS "SimpleTypeRule<RInteger, AInteger>"
 typerule GCD ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 typerule LCM ::cvc5::internal::theory::arith::ArithOperatorTypeRule
+typerule FACTORS "SimpleTypeRule<RInteger, AInteger>"
 
 typerule SQRT "SimpleTypeRule<RReal, AReal>"
 
