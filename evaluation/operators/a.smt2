@@ -1,0 +1,12 @@
+(set-logic ALL)
+(declare-fun __intToBag_var_2 () (Bag Int))
+(declare-fun __intToBag_var_3 () (Bag Int))
+(assert true)
+(assert true)
+(assert (= (bag.union_disjoint __intToBag_var_2 __intToBag_var_3) (bag.union_disjoint (bag 2 1) (bag 3 1))))
+(assert (not (= __intToBag_var_3 (bag 3 1))))
+(assert (not (= __intToBag_var_3 (bag 2 1))))
+(assert (= (bag.card __intToBag_var_2) 1))
+(assert true)
+(check-sat)
+;;; assertions::post-int-to-bag end

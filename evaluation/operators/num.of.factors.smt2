@@ -12,5 +12,5 @@
 (assert (distinct x0 1))
 (assert (= (* x0 x1) 15))
 (assert (= (num.of.factors 12) (num.of.factors x1)))
-; (assert (= (num.of.factors 4) (num.of.factors 15)))
+(assert (= (num.of.factors 6) (num.of.factors 15)))
 (check-sat)

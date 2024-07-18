@@ -1,0 +1,11 @@
+(set-logic ALL)
+(declare-fun __intToBag_var_2 () (Bag Int))
+(declare-fun __intToBag_var_3 () (Bag Int))
+(assert true)
+(assert true)
+; (assert (distinct __intToBag_var_2 __intToBag_var_3))
+(assert (distinct __intToBag_var_2 (as bag.empty (Bag Int))))
+(assert (= (bag.card __intToBag_var_2) (bag.card __intToBag_var_3)))
+(assert true)
+(check-sat)
+;;; assertions::post-int-to-bag end
