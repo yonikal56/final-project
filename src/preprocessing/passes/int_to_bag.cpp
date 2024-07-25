@@ -155,7 +155,7 @@ Node convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
     }
     else if (current.getKind() == Kind::GCD)
     {
-      result = nm->mkNode(Kind::BAG_DIFFERENCE_SUBTRACT, cache[current[0]], cache[current[1]]);
+      result = nm->mkNode(Kind::BAG_INTER_MIN, cache[current[0]], cache[current[1]]);
     }
     else if (current.getKind() == Kind::LCM)
     {

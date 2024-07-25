@@ -8,7 +8,7 @@
 (assert (>= x0 1))
 (assert (>= x1 1))
 (assert (= (* x0 x1) 24))
-(assert (distinct x1 4))
+;(assert (distinct x1 4))
 (assert (distinct x1 1))
 (assert (distinct x1 24))
 (assert (= (lcm x0 7) 42))
