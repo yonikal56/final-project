@@ -133,6 +133,18 @@ struct CardTypeRule
 }; /* struct CardTypeRule */
 
 /**
+ * Type rule for (bag.to.int B) to check the argument B is a bag.
+ */
+struct ToIntTypeRule
+{
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+}; /* struct CardTypeRule */
+
+/**
  * Type rule for (bag.choose B) to check the argument B is a bag.
  */
 struct ChooseTypeRule

@@ -935,6 +935,7 @@ void Smt2State::setLogic(std::string name)
     addOperator(Kind::BAG_PARTITION, "bag.partition");
     addOperator(Kind::TABLE_PRODUCT, "table.product");
     addOperator(Kind::BAG_PARTITION, "table.group");
+    addOperator(Kind::BAG_TO_INT, "bag.to.int");
     // these operators can be with/without indices
     addOperator(Kind::TABLE_PROJECT, "table.project");
     addOperator(Kind::TABLE_AGGREGATE, "table.aggr");

@@ -303,6 +303,31 @@ TypeNode CardTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
+TypeNode ToIntTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->integerType();
+}
+TypeNode ToIntTypeRule::computeType(NodeManager* nodeManager,
+                                   TNode n,
+                                   bool check,
+                                   std::ostream* errOut)
+{
+  Assert(n.getKind() == Kind::BAG_TO_INT);
+  TypeNode bagType = n[0].getTypeOrNull();
+  if (check)
+  {
+    if (!bagType.isBag())
+    {
+      if (errOut)
+      {
+        (*errOut) << "cardinality operates on a bag, non-bag object found";
+      }
+      return TypeNode::null();
+    }
+  }
+  return nodeManager->integerType();
+}
+
 TypeNode ChooseTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();

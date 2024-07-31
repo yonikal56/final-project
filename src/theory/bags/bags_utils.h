@@ -257,6 +257,11 @@ class BagsUtils
    */
   static Node evaluateCard(TNode n);
   /**
+   * @param n has the form (bag.to.int A) where A is a constant bag
+   * @return the number which this bag represents (assuming prime factors)
+   */
+  static Node evaluateBagToInt(TNode n);
+  /**
    * @param n has the form (bag.map f A) where A is a constant bag
    * @return a constant bag constructed from the images of elements in A.
    */

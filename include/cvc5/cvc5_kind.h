@@ -4192,6 +4192,11 @@ enum ENUM(Kind)
    */
   EVALUE(BAG_PARTITION),
   /**
+   *
+   *
+   */
+   EVALUE(BAG_TO_INT),
+  /**
    * Table cross product.
    *
    * - Arity: ``2``

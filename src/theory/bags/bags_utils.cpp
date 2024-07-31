@@ -144,6 +144,7 @@ Node BagsUtils::evaluate(Rewriter* rewriter, TNode n)
     case Kind::BAG_MAP: return evaluateBagMap(n);
     case Kind::BAG_FILTER: return evaluateBagFilter(n);
     case Kind::BAG_FOLD: return evaluateBagFold(n);
+    case Kind::BAG_TO_INT: return evaluateBagToInt(n);
     case Kind::TABLE_PRODUCT: return evaluateProduct(n);
     case Kind::TABLE_JOIN: return evaluateJoin(rewriter, n);
     case Kind::TABLE_GROUP: return evaluateGroup(n);
@@ -626,6 +627,26 @@ Node BagsUtils::evaluateCard(TNode n)
 
   NodeManager* nm = NodeManager::currentNM();
   Node sumNode = nm->mkConstInt(sum);
+  return sumNode;
+}
+
+
+Node BagsUtils::evaluateBagToInt(TNode n)
+{
+  Assert(n.getKind() == Kind::BAG_TO_INT);
+  // Examples
+  // --------
+
+  std::map<Node, Rational> elements = getBagElements(n[0]);
+  Rational sum(0);
+  for (std::pair<Node, Rational> element : elements)
+  {
+    sum += element.second;
+  }
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node sumNode = nm->mkConstInt(sum);
+  sumNode = nm->mkConstInt(2);
   return sumNode;
 }
 

@@ -55,6 +55,9 @@ operator BAG_MAKE    2 "constructs a bag from one element along with its multipl
 
 operator BAG_CARD          1  "bag cardinality operator"
 
+operator BAG_TO_INT   1  "returns the int that this bag represents (assuming prime factorization)"
+
+
 # The operator choose returns an element from a given bag.
 # If bag A = {("a", 1)}, then the term (choose A) is equivalent to the term a.
 # If the bag is empty, then (choose A) is an arbitrary value.
@@ -93,6 +96,7 @@ typerule BAG_SETOF   ::cvc5::internal::theory::bags::SetofTypeRule
 typerule BAG_MAKE                ::cvc5::internal::theory::bags::BagMakeTypeRule
 typerule BAG_EMPTY               ::cvc5::internal::theory::bags::EmptyBagTypeRule
 typerule BAG_CARD                ::cvc5::internal::theory::bags::CardTypeRule
+typerule BAG_TO_INT                ::cvc5::internal::theory::bags::ToIntTypeRule
 typerule BAG_CHOOSE              ::cvc5::internal::theory::bags::ChooseTypeRule
 typerule BAG_MAP                 ::cvc5::internal::theory::bags::BagMapTypeRule
 typerule BAG_FILTER              ::cvc5::internal::theory::bags::BagFilterTypeRule
