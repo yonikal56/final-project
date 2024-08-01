@@ -31,6 +31,7 @@ divisor - operator (other operations idea from BAG kinds - after!)
 
 
 Nelson-OpPen - add support of +, -, and >=,<=,>,< - convert sides to bag.to.int. grep "QF_NIA"
+Nelso-Oppen - add support to dump-models
 
 
 "the number of prime factors of x is k"
