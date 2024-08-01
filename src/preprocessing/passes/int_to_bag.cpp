@@ -167,6 +167,8 @@ Node convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
       result = sm->mkDummySkolem("__intToBag_var",
                                  nm->mkBagType(current.getType()),
                                  "Variable introduced in intToBag pass");
+      Node definition = nm->mkNode(Kind::BAG_TO_INT, result);
+      //d_preprocContext->addSubstitution(result, definition);
     }
     else if (current.isConst() && current.getType() == nm->integerType())
     {

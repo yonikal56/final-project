@@ -26,10 +26,11 @@ TODO:
 
 5. random number of x, random number of const, random number of asserts - random of each size and random - =/!=
 
+divisor - operator (other operations idea from BAG kinds - after!)
 
 
 
-Nelson-OpPen -  bag-to-int - evaluate (and new kind)
+Nelson-OpPen - add support of +, -, and >=,<=,>,< - convert sides to bag.to.int. grep "QF_NIA"
 
 
 "the number of prime factors of x is k"

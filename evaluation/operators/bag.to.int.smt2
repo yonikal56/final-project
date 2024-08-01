@@ -1,5 +1,5 @@
 (set-logic ALL)
 (declare-fun __intToBag_var_2 () (Bag Int))
 (declare-fun __intToBag_var_3 () (Bag Int))
-(assert (distinct 1 (bag.to.int (as bag.empty (Bag Int)))))
+(assert (= 32 (bag.to.int (bag.union_disjoint (bag 2 3) (bag 4 1)))))
 (check-sat)

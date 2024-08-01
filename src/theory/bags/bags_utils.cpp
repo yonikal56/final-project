@@ -14,6 +14,7 @@
  */
 #include "bags_utils.h"
 
+#include <math.h>
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
@@ -638,16 +639,12 @@ Node BagsUtils::evaluateBagToInt(TNode n)
   // --------
 
   std::map<Node, Rational> elements = getBagElements(n[0]);
-  Rational sum(0);
+  int product = 1;
   for (std::pair<Node, Rational> element : elements)
-  {
-    sum += element.second;
-  }
+    product *= pow(element.first.getConst<Rational>().getNumerator().getSignedInt(), element.second.getNumerator().getSignedInt());
 
   NodeManager* nm = NodeManager::currentNM();
-  Node sumNode = nm->mkConstInt(sum);
-  sumNode = nm->mkConstInt(2);
-  return sumNode;
+  return nm->mkConstInt(Rational(product));
 }
 
 Node BagsUtils::evaluateBagMap(TNode n)
