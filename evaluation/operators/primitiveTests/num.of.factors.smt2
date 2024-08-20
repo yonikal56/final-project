@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --solve-int-as-bag
-; EXPECT: sat
+; EXPECT: unsat
 (set-logic ALL)
-;(set-info :status sat)
+(set-info :status unsat)
 (set-option :incremental false)
 (define-fun is.prime2 ((x Int)) Bool
     (forall ((i Int))
@@ -12,6 +12,7 @@
 (define-fun divisor ((a Int) (b Int)) Bool
     (exists ((k Int)) (= b (* a k)))
 )
+;numoffacotrs of 6 is 1
 (declare-fun ffactors1 (Int) Int)
 (declare-fun numfactors1 () Int)
 (assert (= numfactors1 1))
@@ -25,9 +26,7 @@
 ))
 (assert (forall ((y Int))
     (=>
-        (and (> y 1) (<= y 3) (is.prime2 y) (divisor y 3)) (exists ((i Int)) (and (<= 0 i) (< i numfactors1) (= y (ffactors1 i))))
+        (and (> y 1) (<= y 6) (is.prime2 y) (divisor y 6)) (exists ((i Int)) (and (<= 0 i) (< i numfactors1) (= y (ffactors1 i))))
     )
 ))
 (check-sat)
-;(assert (= (num.of.factors 12) (num.of.factors x1)))
-;(assert (= (num.of.factors 6) (num.of.factors 15)))

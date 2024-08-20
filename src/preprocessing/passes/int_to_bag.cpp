@@ -16,7 +16,6 @@
 #include "preprocessing/passes/int_to_bag.h"
 
 #include <cmath>
-#include <vector>
 #include <algorithm>
 
 #include "base/check.h"
@@ -119,7 +118,7 @@ Node convertIntToBag(int n)
   return result;
 }
 
-Node convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
+Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
@@ -168,7 +167,7 @@ Node convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
                                  nm->mkBagType(current.getType()),
                                  "Variable introduced in intToBag pass");
       Node definition = nm->mkNode(Kind::BAG_TO_INT, result);
-      //d_preprocContext->addSubstitution(result, definition);
+      d_preprocContext->addSubstitution(result, definition);
     }
     else if (current.isConst() && current.getType() == nm->integerType())
     {

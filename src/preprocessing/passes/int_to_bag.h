@@ -21,6 +21,7 @@
 
 #include <unordered_map>
 
+#include <vector>
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -55,6 +56,8 @@ class IntToBag : public PreprocessingPass
   theory::SubstitutionMap d_usVarsToBVVars;
   /* Map each uninterpreted sort to the number of variables in this sort. */
   USortToBVSizeMap d_usortCardinality;
+  /* Convert old assertions to new versions */
+  Node convertAssertion(TNode n, NodeMap& cache, std::vector<Node>& vars);
   LogicInfo d_logic;
 };
 

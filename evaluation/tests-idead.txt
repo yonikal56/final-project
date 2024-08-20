@@ -32,32 +32,3 @@ divisor - operator (other operations idea from BAG kinds - after!)
 
 Nelson-OpPen - add support of +, -, and >=,<=,>,< - convert sides to bag.to.int. grep "QF_NIA"
 Nelso-Oppen - add support to dump-models
-
-
-"the number of prime factors of x is k"
-
------>
-
-declare-fun f: Int -> Int
-forall i. i>= k . f(i)=0
-forall i. 0<= i < k. f(i) is prime
-forall i,j. 0 <=i,j <k . f(i) != f(j)
-forall y. y is prime and y|x then exists i. 0 <= i < k /\ f(i) = y
-
-
-"the prime factors of x = the prime factors of y"
-
---->
-
-declare-fun f: Int -> Int
-declare-fun g: Int -> Int
-exists k s.t num of factors f = k (also for g)
-and forall 0 <= i < k f(i) = g(i)
-
-declare-fun f: Int -> Int
-declare-fun g: Int -> Int
-forall i. i>= k . f(i)=0 (also for g)
-forall i. 0<= i < k. f(i) is prime (also for g)
-forall i,j. 0 <=i,j <k . f(i) != f(j) (also for g)
-forall z. z is prime and y|x then exists i. 0 <= i < k /\ f(i) = z (also for g)
-forall i. 0 <= i < k . f(i)=g(i)
