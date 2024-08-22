@@ -190,6 +190,10 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
         result = nm->mkNode(Kind::BAG_UNION_DISJOINT, result, childRes);
       }
     }
+//    else if (current.getKind() == Kind::ADD)
+//    {
+//
+//    }
     else
     {
       NodeBuilder builder(current.getKind());
