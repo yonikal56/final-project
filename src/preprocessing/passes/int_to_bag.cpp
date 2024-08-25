@@ -167,7 +167,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
                                  nm->mkBagType(current.getType()),
                                  "Variable introduced in intToBag pass");
       Node definition = nm->mkNode(Kind::BAG_TO_INT, result);
-      d_preprocContext->addSubstitution(result, definition);
+      d_preprocContext->addSubstitution(current, definition);
     }
     else if (current.isConst() && current.getType() == nm->integerType())
     {
@@ -178,7 +178,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
     {
       result = current;
     }
-    else if ((current.getKind() == Kind::NONLINEAR_MULT))
+    else if ((current.getKind() == Kind::NONLINEAR_MULT) || (current.getKind() == Kind::MULT))
     {
       Assert(cache.find(current[0]) != cache.end());
       result = cache[current[0]];
@@ -190,11 +190,8 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
         result = nm->mkNode(Kind::BAG_UNION_DISJOINT, result, childRes);
       }
     }
-//    else if (current.getKind() == Kind::ADD)
-//    {
-//
-//    }
-    else
+    else if (current.getKind() == Kind::EQUAL || current.getKind() == Kind::NOT || current.getKind() == Kind::AND
+             || current.getKind() == Kind::OR || current.getKind() == Kind::IMPLIES)
     {
       NodeBuilder builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
@@ -205,9 +202,24 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
       for (unsigned i = 0; i < current.getNumChildren(); ++i)
       {
         Assert(cache.find(current[i]) != cache.end());
-        builder << cache[current[i]];
+        if (cache[current[i]].getKind() == Kind::DUMMY_SKOLEM || cache[current[i]].getKind() == Kind::BAG_TYPE)
+        {
+          builder << nm->mkNode(kind::Kind_t::BAG_TO_INT, cache[current[i]]);
+        }
+        else
+        {
+          builder << cache[current[i]];
+        }
       }
       result = builder;
+    }
+    else if (current.getKind() == Kind::ADD)
+    {
+      result = nm->mkNode(Kind::ADD, nm->mkNode(Kind::BAG_TO_INT, cache[current[0]]), nm->mkNode(Kind::BAG_TO_INT, cache[current[1]]));
+    }
+    else
+    {
+      Assert(false) << "Got kind: " << current.getKind() << std::endl;
     }
     cache[current] = result;
   }

@@ -7,5 +7,6 @@
 (declare-fun x1 () Int)
 (assert (>= x0 1))
 (assert (>= x1 1))
-(assert (= (+ x0 x1) 7))
+(assert (= (* x0 x1) 7))
+(assert (= (+ 7 x1) x0))
 (check-sat)
