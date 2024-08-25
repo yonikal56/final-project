@@ -10,7 +10,7 @@ for i in n:
     file_name = f'random_test_{i}.smt2'
     with open(file_name, 'w') as file:
         file.write('; COMMAND-LINE: --solve-int-as-bag\n(set-logic ALL)\n(set-option :incremental false)\n')
-        number_of_x = randint(5, 10)
+        number_of_x = randint(5, 100)
         number_of_consts = randint(2, 5)
         consts = [randint(2, 1000) for _ in range(number_of_consts)]
         x_vars = [f'x{k}' for k in range(number_of_x)]

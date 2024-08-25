@@ -51,7 +51,7 @@ void addToMap(std::map<int, int> &map, int newNum) {
   }
 }
 
-Node convertIntToBag(int n)
+Node convertIntToBag(long n)
 {
   Assert(n != 0);
   NodeManager* nm = NodeManager::currentNM();
@@ -171,7 +171,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
     }
     else if (current.isConst() && current.getType() == nm->integerType())
     {
-      result = convertIntToBag(current.getConst<Rational>().getNumerator().getSignedInt());
+      result = convertIntToBag(current.getConst<Rational>().getNumerator().getSigned64());
     }
 
     else if (current.getNumChildren() == 0)
@@ -202,7 +202,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
       for (unsigned i = 0; i < current.getNumChildren(); ++i)
       {
         Assert(cache.find(current[i]) != cache.end());
-        if (cache[current[i]].getKind() == Kind::DUMMY_SKOLEM || cache[current[i]].getKind() == Kind::BAG_TYPE)
+        if (cache[current[i]].getKind() == Kind::DUMMY_SKOLEM || cache[current[i]].getType().isBag())
         {
           builder << nm->mkNode(kind::Kind_t::BAG_TO_INT, cache[current[i]]);
         }
