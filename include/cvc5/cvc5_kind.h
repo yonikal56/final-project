@@ -4192,10 +4192,15 @@ enum ENUM(Kind)
    */
   EVALUE(BAG_PARTITION),
   /**
-   *
+   * Convert BAG to int based on prime factorization.
    *
    */
    EVALUE(BAG_TO_INT),
+  /**
+   * Convert int to BAG based on prime factorization.
+   *
+   */
+   EVALUE(INT_TO_BAG),
   /**
    * Table cross product.
    *

@@ -320,12 +320,37 @@ TypeNode ToIntTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) << "cardinality operates on a bag, non-bag object found";
+        (*errOut) << "bag.to.int operates on a bag, non-bag object found";
       }
       return TypeNode::null();
     }
   }
   return nodeManager->integerType();
+}
+
+TypeNode FromIntTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
+TypeNode FromIntTypeRule::computeType(NodeManager* nodeManager,
+                                    TNode n,
+                                    bool check,
+                                    std::ostream* errOut)
+{
+  Assert(n.getKind() == Kind::INT_TO_BAG);
+  TypeNode intType = n[0].getTypeOrNull();
+  if (check)
+  {
+    if (!intType.isInteger())
+    {
+      if (errOut)
+      {
+        (*errOut) << "int.to.bag operates on an integer, non-integer object found";
+      }
+      return TypeNode::null();
+    }
+  }
+  return nodeManager->mkBagType(nodeManager->integerType());
 }
 
 TypeNode ChooseTypeRule::preComputeType(NodeManager* nm, TNode n)

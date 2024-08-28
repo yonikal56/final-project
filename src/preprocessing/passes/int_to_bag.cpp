@@ -16,7 +16,6 @@
 #include "preprocessing/passes/int_to_bag.h"
 
 #include <cmath>
-#include <algorithm>
 
 #include "base/check.h"
 #include "expr/node.h"
@@ -32,6 +31,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "util/rational.h"
+#include "theory/bags/bags_utils.h"
 
 using namespace cvc5::internal;
 using namespace cvc5::internal::theory;
@@ -43,80 +43,6 @@ namespace passes {
 using namespace std;
 using namespace cvc5::internal::theory;
 
-void addToMap(std::map<int, int> &map, int newNum) {
-  if(map.find(newNum) == map.end()){
-    map[newNum] = 1;
-  }else{
-    map[newNum] += 1;
-  }
-}
-
-Node convertIntToBag(long n)
-{
-  Assert(n != 0);
-  NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> children;
-  std::map<int, int> nums;
-  Node emptyPart = nm->mkConst(EmptyBag(nm->mkBagType(nm->integerType())));
-
-  if (n == 1)
-  {
-    return emptyPart;
-  }
-
-  // Print the number of 2s that divide n
-  while (n % 2 == 0)
-  {
-    addToMap(nums, 2);
-    n = n / 2;
-  }
-
-  // n must be odd at this point. So we can skip
-  // one element (Note i = i +2)
-  for (int i = 3; i <= std::sqrt(n); i = i + 2)
-  {
-    // While i divides n, print i and divide n
-    while (n % i == 0)
-    {
-      addToMap(nums, i);
-      n = n / i;
-    }
-  }
-
-  // This condition is to handle the case when n
-  // is a prime number greater than 2
-  if (n > 2)
-  {
-    addToMap(nums, n);
-  }
-
-  for (auto i = nums.begin(); i != nums.end(); ++i) {
-    Node first = NodeManager::currentNM()->mkConstInt(Rational(i->first));
-    Node second = NodeManager::currentNM()->mkConstInt(Rational(i->second));
-    Node node = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, first, second);
-    children.push_back(node);
-  }
-
-  if (children.size() == 0)
-  {
-    return emptyPart;
-  }
-
-  if (children.size() == 1)
-  {
-    return children.at(0);
-  }
-
-  Node result = children.at(0);
-  int size = children.size();
-  for (int i = 1; i < size; i++)
-  {
-    result = NodeManager::currentNM()->mkNode(
-        Kind::BAG_UNION_DISJOINT, result, children.at(i));
-  }
-
-  return result;
-}
 
 Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
 {
@@ -171,7 +97,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
     }
     else if (current.isConst() && current.getType() == nm->integerType())
     {
-      result = convertIntToBag(current.getConst<Rational>().getNumerator().getSigned64());
+      result = nm->mkNode(Kind::INT_TO_BAG, current);//convertIntToBag(current.getConst<Rational>().getNumerator().getSigned64());
     }
 
     else if (current.getNumChildren() == 0)
@@ -204,7 +130,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
         Assert(cache.find(current[i]) != cache.end());
         if (cache[current[i]].getKind() == Kind::DUMMY_SKOLEM || cache[current[i]].getType().isBag())
         {
-          builder << nm->mkNode(kind::Kind_t::BAG_TO_INT, cache[current[i]]);
+          builder << cache[current[i]];
         }
         else
         {
@@ -213,9 +139,9 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
       }
       result = builder;
     }
-    else if (current.getKind() == Kind::ADD)
+    else if (current.getKind() == Kind::ADD || current.getKind() == Kind::SUB)
     {
-      result = nm->mkNode(Kind::ADD, nm->mkNode(Kind::BAG_TO_INT, cache[current[0]]), nm->mkNode(Kind::BAG_TO_INT, cache[current[1]]));
+      result = nm->mkNode(Kind::INT_TO_BAG ,nm->mkNode(current.getKind(), nm->mkNode(Kind::BAG_TO_INT, cache[current[0]]), nm->mkNode(Kind::BAG_TO_INT, cache[current[1]])));
     }
     else
     {

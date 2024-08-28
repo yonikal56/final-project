@@ -1,0 +1,5 @@
+(set-logic ALL)
+(declare-fun __intToBag_var_2 () (Bag Int))
+(declare-fun __intToBag_var_3 () (Bag Int))
+(assert (= (bag.union_disjoint (bag 2 3) (bag 3 1)) (int.to.bag 24)))
+(check-sat)

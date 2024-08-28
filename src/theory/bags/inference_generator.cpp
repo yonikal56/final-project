@@ -56,6 +56,32 @@ void InferenceGenerator::registerCountTerm(Node n)
   d_state->registerCountTerm(bag, element, skolem);
 }
 
+void InferenceGenerator::registerBagToIntTerm(Node n)
+{
+  Assert(n.getKind() == Kind::BAG_TO_INT);
+  Node bag = d_state->getRepresentative(n[0]);
+  Node cardTerm = d_nm->mkNode(Kind::BAG_TO_INT, bag);
+  Node skolem = registerAndAssertSkolemLemma(cardTerm);
+  d_state->registerBagToIntTerm(cardTerm, skolem);
+  Node premise = n[0].eqNode(bag);
+  Node conclusion = skolem.eqNode(n);
+  Node lemma = premise.notNode().orNode(conclusion);
+  d_im->addPendingLemma(lemma, InferenceId::BAGS_SKOLEM);
+}
+
+void InferenceGenerator::registerIntToBagTerm(Node n)
+{
+  Assert(n.getKind() == Kind::INT_TO_BAG);
+  Node bag = d_state->getRepresentative(n[0]);
+  Node cardTerm = d_nm->mkNode(Kind::INT_TO_BAG, bag);
+  Node skolem = registerAndAssertSkolemLemma(cardTerm);
+  d_state->registerIntToBagTerm(cardTerm, skolem);
+  Node premise = n[0].eqNode(bag);
+  Node conclusion = skolem.eqNode(n);
+  Node lemma = premise.notNode().orNode(conclusion);
+  d_im->addPendingLemma(lemma, InferenceId::BAGS_SKOLEM);
+}
+
 void InferenceGenerator::registerCardinalityTerm(Node n)
 {
   Assert(n.getKind() == Kind::BAG_CARD);

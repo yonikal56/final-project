@@ -383,6 +383,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::BAG_FOLD, internal::Kind::BAG_FOLD),
         KIND_ENUM(Kind::BAG_PARTITION, internal::Kind::BAG_PARTITION),
         KIND_ENUM(Kind::BAG_TO_INT, internal::Kind::BAG_TO_INT),
+        KIND_ENUM(Kind::INT_TO_BAG, internal::Kind::INT_TO_BAG),
         KIND_ENUM(Kind::TABLE_PRODUCT, internal::Kind::TABLE_PRODUCT),
         KIND_ENUM(Kind::TABLE_PROJECT, internal::Kind::TABLE_PROJECT),
         KIND_ENUM(Kind::TABLE_AGGREGATE, internal::Kind::TABLE_AGGREGATE),

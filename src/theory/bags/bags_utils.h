@@ -262,6 +262,11 @@ class BagsUtils
    */
   static Node evaluateBagToInt(TNode n);
   /**
+   * @param n has the form (int.to.bag m) where m is a constant integer
+   * @return the prime factorization using bags
+   */
+  static Node evaluateIntToBag(TNode n);
+  /**
    * @param n has the form (bag.map f A) where A is a constant bag
    * @return a constant bag constructed from the images of elements in A.
    */
