@@ -6,7 +6,7 @@ Tests ideas:
 
 Evaluation of everything on cluster!!
 
-
+- readme with link to original readme and explain of my repository!
 
 
 
@@ -36,5 +36,6 @@ Evaluation of everything on cluster!!
 
 
 Future:
+- Theory solver adds 0 or negative numbers
 - Nelson-OpPen - add support of +, -, and >=,<=,>,< - convert sides to bag.to.int. grep "QF_NIA"
 - Other operations ideas from BAG kinds

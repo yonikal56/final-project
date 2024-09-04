@@ -632,6 +632,23 @@ Node BagsUtils::evaluateCard(TNode n)
   return sumNode;
 }
 
+void addMap(std::map<int, int> &map, int newNum) {
+  if(map.find(newNum) == map.end()){
+    map[newNum] = 1;
+  }else{
+    map[newNum] += 1;
+  }
+}
+
+int intFactorizationZToPositive(int z)
+{
+  return z >= 0 ? (2*z+2) : (-2*z+1);
+}
+
+int intFactorizationPositiveToZ(int n)
+{
+  return n % 2 == 0 ? (n/2-1) : (-(n-1)/2);
+}
 
 Node BagsUtils::evaluateBagToInt(TNode n)
 {
@@ -642,18 +659,14 @@ Node BagsUtils::evaluateBagToInt(TNode n)
   std::map<Node, Rational> elements = getBagElements(n[0]);
   int product = 1;
   for (std::pair<Node, Rational> element : elements)
-    product *= pow(element.first.getConst<Rational>().getNumerator().getSignedInt(), element.second.getNumerator().getSignedInt());
+  {
+    product *=
+        pow(intFactorizationZToPositive(element.first.getConst<Rational>().getNumerator().getSignedInt()),
+            element.second.getNumerator().getSignedInt());
+  }
 
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkConstInt(Rational(product));
-}
-
-void addMap(std::map<int, int> &map, int newNum) {
-  if(map.find(newNum) == map.end()){
-    map[newNum] = 1;
-  }else{
-    map[newNum] += 1;
-  }
+  return nm->mkConstInt(Rational(abs(product)));
 }
 
 Node BagsUtils::evaluateIntToBag(TNode n)
@@ -674,11 +687,11 @@ Node BagsUtils::evaluateIntToBag(TNode n)
   {
     return emptyPart;
   }
-  if (num < 1)
-  {
-    addMap(nums, -1);
-    num *= -1;
-  }
+//  if (num < 1)
+//  {
+//    addMap(nums, -1);
+//    num *= -1;
+//  }
 
   // Print the number of 2s that divide n
   while (num % 2 == 0)
@@ -707,7 +720,7 @@ Node BagsUtils::evaluateIntToBag(TNode n)
   }
 
   for (auto i = nums.begin(); i != nums.end(); ++i) {
-    Node first = NodeManager::currentNM()->mkConstInt(Rational(i->first));
+    Node first = NodeManager::currentNM()->mkConstInt(Rational(intFactorizationPositiveToZ(i->first)));
     Node second = NodeManager::currentNM()->mkConstInt(Rational(i->second));
     Node node = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, first, second);
     if (Rational(i->first) == -1)

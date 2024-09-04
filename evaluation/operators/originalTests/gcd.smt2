@@ -7,7 +7,5 @@
 (declare-fun x1 () Int)
 (assert (>= x0 1))
 (assert (>= x1 1))
-(assert (= (* x0 x1) 16))
-(assert (distinct x1 16))
-(assert (= (gcd 8 12) x0))
+(assert (distinct (gcd x0 x1) (lcm x0 x1)))
 (check-sat)
