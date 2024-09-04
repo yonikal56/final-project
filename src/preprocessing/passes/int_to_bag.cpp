@@ -63,6 +63,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
     {
       vars.erase(remove(vars.begin(), vars.end(), current[0]), vars.end());
       Assert(current[1].getConst<Rational>().getNumerator() == 1);
+      //result = nm->mkNode(Kind::GEQ, nm->mkNode(Kind::BAG_TO_INT, cache[current[0]]), current[1]);
       result = nm->mkConst(true);
     }
     else if (current.getKind() == Kind::PRIME)
@@ -117,7 +118,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
       }
     }
     else if (current.getKind() == Kind::EQUAL || current.getKind() == Kind::NOT || current.getKind() == Kind::AND
-             || current.getKind() == Kind::OR || current.getKind() == Kind::IMPLIES)
+             || current.getKind() == Kind::OR || current.getKind() == Kind::IMPLIES || current.getKind() == Kind::BOUND_VAR_LIST || current.getKind() == Kind::FORALL)
     {
       NodeBuilder builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
@@ -145,7 +146,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
     }
     else
     {
-      Assert(false) << "Got kind: " << current.getKind() << std::endl;
+      Assert(false) << "Got kind: " << current.getKind() << "\nCurrent:" << current << std::endl;
     }
     cache[current] = result;
   }

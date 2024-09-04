@@ -7,6 +7,5 @@
 ;(get-value ((bag.union_disjoint a b)))
 ;(get-value ((int.to.bag 15)))
 ;(get-value ((= (bag.union_disjoint a b) (int.to.bag 15))))
-;(=  )
 (get-value ((bag.union_disjoint (bag 3 1) (bag 5 1))))
 (get-value ((bag.union_disjoint (int.to.bag (+ 3 (bag.to.int (bag.union_disjoint (bag (- 1) 1) b)))) b)))

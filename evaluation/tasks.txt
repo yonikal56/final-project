@@ -1,15 +1,40 @@
 Tests ideas:
-general -
-1. x|y and y|z => x|z
-operators -
 1. exists n different numbers with the same prime factors
 2. exists n different numbers with the same number prime factors
 3. exists 2 numbers with the same gcd and not lcm
 4. 2 equal number with different number of prime factors - unsat
 
-
-Nelson-OpPen - add support of +, -, and >=,<=,>,< - convert sides to bag.to.int. grep "QF_NIA"
-
-Other operations ideas from BAG kinds
-
 Evaluation of everything on cluster!!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Future:
+- Nelson-OpPen - add support of +, -, and >=,<=,>,< - convert sides to bag.to.int. grep "QF_NIA"
+- Other operations ideas from BAG kinds
