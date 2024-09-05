@@ -1,4 +1,4 @@
-; COMMAND-LINE: --solve-int-as-bag
+; COMMAND-LINE: --cegqi-all --nl-ext-tplanes
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)

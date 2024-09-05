@@ -1,3 +1,4 @@
+; COMMAND-LINE: --cegqi-all --nl-ext-tplanes
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
