@@ -7,7 +7,7 @@ def create_mult(all_vars):
     return f'(* {" ".join(all_vars)})'
 
 def originalTestsAssertion(vars):
-    factor_strings = [f'(factors {var})' for var in vars]
+    factor_strings = [f'(num.of.factors {var})' for var in vars]
     return f'(assert (= {" ".join(factor_strings)}))\n'
 
 def primitiveTestsAssertion(vars):
@@ -28,17 +28,13 @@ def primitiveTestsAssertion(vars):
     for var in vars:
         str += f'(assert (forall ((i Int) (j Int))\n(=> (and (<= 0 i) (< i numfactors) (<= 0 j) (< j numfactors)\n(distinct i j)) (distinct (ffactors{var} i) (ffactors{var} j)))\n))\n'
 
-    equal_strs = [f'(ffactors{var} i)' for var in vars]
-
-    str += f'(assert (forall ((i Int))\n(=> (and (<= 0 i) (< i numfactors))\n(= {" ".join(equal_strs)}))\n))\n'
-
     for var in vars:
         str += f'(assert (forall ((y Int))\n(=> (and (> y 1) (<= y {var}) (is.prime2 y) (divisor y {var}))\n(exists ((i Int)) (and (<= 0 i) (< i numfactors) (= y (ffactors{var} i)))))))\n'
 
     return str
 
 
-folders = ['originalTests/factors/', 'primitiveTests/factors/']
+folders = ['originalTests/num.factors/', 'primitiveTests/num.factors/']
 command_lines = ['; COMMAND-LINE: --solve-int-as-bag\n; EXPECT: sat\n(set-logic ALL)\n(set-info :status sat)\n(set-option :incremental false)\n',
                  '; COMMAND-LINE: --cegqi-all --nl-ext-tplanes\n; EXPECT: sat\n(set-logic ALL)\n(set-info :status sat)\n(set-option :incremental false)\n']
 assertions = [originalTestsAssertion, primitiveTestsAssertion]
@@ -55,7 +51,7 @@ for i in n:
             for k in range(i):
                 file.write(f'(assert (>= x{k} 1))\n')
 
-            file.write(f'(assert (distinct {" ".join(vars)}))\n')
+            file.write(f'(assert (distinct {" ".join(vars)} 1))\n')
 
             file.write(assertions[j](vars))
 

@@ -92,7 +92,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
       vars.push_back(current);
       result = sm->mkDummySkolem("__intToBag_var",
                                  nm->mkBagType(current.getType()),
-                                 "Variable introduced in intToBag pass");
+                                 "Variable introduced in multiplication pass");
       Node definition = nm->mkNode(Kind::BAG_TO_INT, result);
       d_preprocContext->addSubstitution(current, definition);
     }
