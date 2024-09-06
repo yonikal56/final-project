@@ -185,6 +185,12 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::TO_INTEGER, internal::Kind::TO_INTEGER),
         KIND_ENUM(Kind::TO_REAL, internal::Kind::TO_REAL),
         KIND_ENUM(Kind::PI, internal::Kind::PI),
+        /* PRIMES ----------------------------------------------------------- */
+        KIND_ENUM(Kind::PRIME, internal::Kind::PRIME),
+        KIND_ENUM(Kind::NUMOFFACTORS, internal::Kind::NUMOFFACTORS),
+        KIND_ENUM(Kind::FACTORS, internal::Kind::FACTORS),
+        KIND_ENUM(Kind::GCD, internal::Kind::GCD),
+        KIND_ENUM(Kind::LCM, internal::Kind::LCM),
         /* BV --------------------------------------------------------------- */
         KIND_ENUM(Kind::CONST_BITVECTOR, internal::Kind::CONST_BITVECTOR),
         KIND_ENUM(Kind::BITVECTOR_CONCAT, internal::Kind::BITVECTOR_CONCAT),
@@ -376,6 +382,8 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::BAG_FILTER, internal::Kind::BAG_FILTER),
         KIND_ENUM(Kind::BAG_FOLD, internal::Kind::BAG_FOLD),
         KIND_ENUM(Kind::BAG_PARTITION, internal::Kind::BAG_PARTITION),
+        KIND_ENUM(Kind::BAG_TO_INT, internal::Kind::BAG_TO_INT),
+        KIND_ENUM(Kind::INT_TO_BAG, internal::Kind::INT_TO_BAG),
         KIND_ENUM(Kind::TABLE_PRODUCT, internal::Kind::TABLE_PRODUCT),
         KIND_ENUM(Kind::TABLE_PROJECT, internal::Kind::TABLE_PROJECT),
         KIND_ENUM(Kind::TABLE_AGGREGATE, internal::Kind::TABLE_AGGREGATE),

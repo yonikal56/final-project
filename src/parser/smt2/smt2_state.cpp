@@ -935,6 +935,8 @@ void Smt2State::setLogic(std::string name)
     addOperator(Kind::BAG_PARTITION, "bag.partition");
     addOperator(Kind::TABLE_PRODUCT, "table.product");
     addOperator(Kind::BAG_PARTITION, "table.group");
+    addOperator(Kind::BAG_TO_INT, "bag.to.int");
+    addOperator(Kind::INT_TO_BAG, "int.to.bag");
     // these operators can be with/without indices
     addOperator(Kind::TABLE_PROJECT, "table.project");
     addOperator(Kind::TABLE_AGGREGATE, "table.aggr");
@@ -944,6 +946,13 @@ void Smt2State::setLogic(std::string name)
     addIndexedOperator(Kind::TABLE_AGGREGATE, "table.aggr");
     addIndexedOperator(Kind::TABLE_JOIN, "table.join");
     addIndexedOperator(Kind::TABLE_GROUP, "table.group");
+
+    // operators for prime number using bags
+    addOperator(Kind::PRIME, "is.prime");
+    addOperator(Kind::NUMOFFACTORS, "num.of.factors");
+    addOperator(Kind::FACTORS, "factors");
+    addOperator(Kind::GCD, "gcd");
+    addOperator(Kind::LCM, "lcm");
   }
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))
   {

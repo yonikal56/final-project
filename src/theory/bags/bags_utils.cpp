@@ -14,6 +14,7 @@
  */
 #include "bags_utils.h"
 
+#include <math.h>
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
@@ -144,6 +145,8 @@ Node BagsUtils::evaluate(Rewriter* rewriter, TNode n)
     case Kind::BAG_MAP: return evaluateBagMap(n);
     case Kind::BAG_FILTER: return evaluateBagFilter(n);
     case Kind::BAG_FOLD: return evaluateBagFold(n);
+    case Kind::BAG_TO_INT: return evaluateBagToInt(n);
+    case Kind::INT_TO_BAG: return evaluateIntToBag(n);
     case Kind::TABLE_PRODUCT: return evaluateProduct(n);
     case Kind::TABLE_JOIN: return evaluateJoin(rewriter, n);
     case Kind::TABLE_GROUP: return evaluateGroup(n);
@@ -627,6 +630,125 @@ Node BagsUtils::evaluateCard(TNode n)
   NodeManager* nm = NodeManager::currentNM();
   Node sumNode = nm->mkConstInt(sum);
   return sumNode;
+}
+
+void addMap(std::map<int, int> &map, int newNum) {
+  if(map.find(newNum) == map.end()){
+    map[newNum] = 1;
+  }else{
+    map[newNum] += 1;
+  }
+}
+
+int intFactorizationZToPositive(int z)
+{
+  return z >= 0 ? (2*z+2) : (-2*z+1);
+}
+
+int intFactorizationPositiveToZ(int n)
+{
+  return n % 2 == 0 ? (n/2-1) : (-(n-1)/2);
+}
+
+Node BagsUtils::evaluateBagToInt(TNode n)
+{
+  Assert(n.getKind() == Kind::BAG_TO_INT);
+  // Examples
+  // --------
+
+  std::map<Node, Rational> elements = getBagElements(n[0]);
+  int product = 1;
+  for (std::pair<Node, Rational> element : elements)
+  {
+    product *=
+        pow(intFactorizationZToPositive(element.first.getConst<Rational>().getNumerator().getSignedInt()),
+            element.second.getNumerator().getSignedInt());
+  }
+
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkConstInt(Rational(abs(product)));
+}
+
+Node BagsUtils::evaluateIntToBag(TNode n)
+{
+  Assert(n.getKind() == Kind::INT_TO_BAG);
+  // Examples
+  // --------
+
+  long num = n[0].getConst<Rational>().getNumerator().getSigned64();
+
+  Assert(num != 0);
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> children;
+  std::map<int, int> nums;
+  Node emptyPart = nm->mkConst(EmptyBag(nm->mkBagType(nm->integerType())));
+
+  if (num == 1)
+  {
+    return emptyPart;
+  }
+//  if (num < 1)
+//  {
+//    addMap(nums, -1);
+//    num *= -1;
+//  }
+
+  // Print the number of 2s that divide n
+  while (num % 2 == 0)
+  {
+    addMap(nums, 2);
+    num = num / 2;
+  }
+
+  // n must be odd at this point. So we can skip
+  // one element (Note i = i +2)
+  for (int i = 3; i <= std::sqrt(num); i = i + 2)
+  {
+    // While i divides n, print i and divide n
+    while (num % i == 0)
+    {
+      addMap(nums, i);
+      num = num / i;
+    }
+  }
+
+  // This condition is to handle the case when n
+  // is a prime number greater than 2
+  if (num > 2)
+  {
+    addMap(nums, num);
+  }
+
+  for (auto i = nums.begin(); i != nums.end(); ++i) {
+    Node first = NodeManager::currentNM()->mkConstInt(Rational(intFactorizationPositiveToZ(i->first)));
+    Node second = NodeManager::currentNM()->mkConstInt(Rational(i->second));
+    Node node = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, first, second);
+    if (Rational(i->first) == -1)
+    {
+      Assert(i->second <= 1);
+    }
+    children.push_back(node);
+  }
+
+  if (children.size() == 0)
+  {
+    return emptyPart;
+  }
+
+  if (children.size() == 1)
+  {
+    return children.at(0);
+  }
+
+  Node result = children.at(0);
+  int size = children.size();
+  for (int i = 1; i < size; i++)
+  {
+    result = NodeManager::currentNM()->mkNode(
+        Kind::BAG_UNION_DISJOINT, result, children.at(i));
+  }
+
+  return result;
 }
 
 Node BagsUtils::evaluateBagMap(TNode n)

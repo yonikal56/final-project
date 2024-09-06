@@ -972,6 +972,14 @@ enum ENUM(Kind)
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
+
+  EVALUE(PRIME),
+  EVALUE(NUMOFFACTORS),
+  EVALUE(FACTORS),
+  EVALUE(GCD),
+  EVALUE(LCM),
+
+
   EVALUE(SQRT),
   /**
    * \rst
@@ -4183,6 +4191,16 @@ enum ENUM(Kind)
    * \endrst
    */
   EVALUE(BAG_PARTITION),
+  /**
+   * Convert BAG to int based on prime factorization.
+   *
+   */
+   EVALUE(BAG_TO_INT),
+  /**
+   * Convert int to BAG based on prime factorization.
+   *
+   */
+   EVALUE(INT_TO_BAG),
   /**
    * Table cross product.
    *

@@ -51,6 +51,9 @@ class InferenceGenerator
    */
   void registerCardinalityTerm(Node n);
 
+  void registerBagToIntTerm(Node n);
+  void registerIntToBagTerm(Node n);
+
   /**
    * @param A is a bag of type (Bag E)
    * @param e is a node of type E

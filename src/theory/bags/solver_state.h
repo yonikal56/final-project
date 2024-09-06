@@ -60,6 +60,9 @@ class SolverState : public TheoryState
    */
   void registerCardinalityTerm(Node n, Node skolem);
 
+  void registerBagToIntTerm(Node n, Node skolem);
+  void registerIntToBagTerm(Node n, Node skolem);
+
   /**
    * @param n has the form (bag.card A)
    */

@@ -78,6 +78,8 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(Kind::BAG_SETOF);
   d_equalityEngine->addFunctionKind(Kind::BAG_MAKE);
   d_equalityEngine->addFunctionKind(Kind::BAG_CARD);
+  d_equalityEngine->addFunctionKind(Kind::BAG_TO_INT);
+  d_equalityEngine->addFunctionKind(Kind::INT_TO_BAG);
   d_equalityEngine->addFunctionKind(Kind::BAG_PARTITION);
   d_equalityEngine->addFunctionKind(Kind::TABLE_PRODUCT);
   d_equalityEngine->addFunctionKind(Kind::TABLE_PROJECT);
@@ -214,6 +216,14 @@ void TheoryBags::collectBagsAndCountTerms()
       if (k == Kind::BAG_CARD)
       {
         d_ig.registerCardinalityTerm(n);
+      }
+      if (k == Kind::BAG_TO_INT)
+      {
+        d_ig.registerBagToIntTerm(n);
+      }
+      if (k == Kind::INT_TO_BAG)
+      {
+        d_ig.registerIntToBagTerm(n);
       }
       if (k == Kind::TABLE_GROUP)
       {
