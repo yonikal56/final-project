@@ -42,7 +42,7 @@ g^{-1}(n) =
 
 ### Example:
 
-- For $z = 3$: $g(3) = 2 \times 3 + 2 = \textbf{8}$}
+- For $z = 3$: $g(3) = 2 \times 3 + 2 = \textbf{8}$
 - For $z = -3$: $g(-3) = -2 \times (-3) + 1 = \textbf{7}$
 - For $n = 8$: $g^{-1}(8) = \frac{8}{2} - 1 = \textbf{3}$
 - For $n = 7$: $g^{-1}(7) = -\frac{7 - 1}{2} = \textbf{-3}$
