@@ -15,6 +15,9 @@ Project Overview
 
 This project expands CVC5 by adding the **--solve-int-as-bag** option. This option introduces a preprocessing pass that transforms any assertions involving integers into assertions involving bags (multi-sets). As a result, multiplication is interpreted as the union disjoint of bags instead of the multiplication of integers. The equivalent bag representation of an integer is based on its prime factorization. Since this approach only deals with positive integers (which have unique prime factorizations), integers are mapped to natural numbers. For example, the bag (0, 2) represents the number 2^2=4.
 
+<!-- TODO: plz explicitly define the mapping (including the new function f and its inverse,
+and provide more examples --!>
+
 In addition to this transformation, new operators have been implemented based on this idea:
 1. gcd (greatest common divisor)
 2. lcm (least common multiple)
@@ -22,11 +25,20 @@ In addition to this transformation, new operators have been implemented based on
 4. num_of_factors (counts the number of different prime factors of a number)
 5. factors (lists the prime factors of a number)
 
+<! -- TODO: plz define explicitly how each operator is translated to bags, including multiplication -->
+
+
+<! -- TODO: plz add instructions on how to use the feature. Pick a file, and tell the user how to run it with and without our new option. In the example, also show that the user is able to get models. -->
+
+<!-- plz provide a link to the building instructions of cvc5 -->
 
 Test Results
 -------------------------------------------------------------------------------
 
 We compared the results of CVC5 with and without our preprocessing pass. All tests included either multiplication or the new operators. For the new operators, we created equivalent tests without using those operators since CVC5 does not natively support them without our option. The versions without these operators include quantifiers, so when running them, the **--cegqi-all --nl-ext-tplanes** flags should be used.
+
+<!-- TODO: The nl-ext-tplanes option is not related to quantifiers, but for efficient 
+arithmetic solving within  cvc5 -->
 
 All tests are organized into the following subfolders within the "evaluation" folder:
 1. multiplication: Contains various tests involving multiplication.
@@ -38,6 +50,13 @@ Each folder includes Python scripts for generating tests and Bash scripts for co
 
 Tests were executed on a large cluster, and a detailed comparison of the results can be found in the "tests_results_on_cluster.txt" file.
 The results indicate a significant performance advantage for our preprocessing pass in both multiplication and operator tests.
+
+<!-- plz provide more details. The best way to do that is just to dump the output of:
+```
+cmpr.py -t
+```
+for each of the three families of tests separately.
+-->
 
 
 Modified Files (Relative to the Original CVC5 Branch)
