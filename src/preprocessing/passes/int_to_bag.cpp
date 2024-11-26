@@ -59,7 +59,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
     Trace("int-to-bags") << toString(current.getKind()) << "," << current.toString() << ","
                          << to_string(current.getNumChildren()) << std::endl;
 
-    if (current.getKind() == Kind::GEQ)
+    if (current.getKind() == Kind::GEQ && current[0].isVar())
     {
       vars.erase(remove(vars.begin(), vars.end(), current[0]), vars.end());
       Assert(current[1].getConst<Rational>().getNumerator() == 1);
@@ -142,7 +142,18 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
     }
     else if (current.getKind() == Kind::ADD || current.getKind() == Kind::SUB)
     {
-      result = nm->mkNode(Kind::INT_TO_BAG ,nm->mkNode(current.getKind(), nm->mkNode(Kind::BAG_TO_INT, cache[current[0]]), nm->mkNode(Kind::BAG_TO_INT, cache[current[1]])));
+      result = nm->mkNode(Kind::INT_TO_BAG,
+                          nm->mkNode(current.getKind(),
+                                     nm->mkNode(Kind::BAG_TO_INT, cache[current[0]]),
+                                     nm->mkNode(Kind::BAG_TO_INT, cache[current[1]])));
+    }
+    else if (current.getKind() == Kind::GEQ)
+    {
+      Trace("int-to-bags") << "kind is:"
+                           << current.getKind() << std::endl;
+      result = nm->mkNode(current.getKind(),
+               nm->mkNode(Kind::INT_TO_BAG, cache[current[0]]),
+               nm->mkNode(Kind::INT_TO_BAG, cache[current[1]]));
     }
     else
     {
