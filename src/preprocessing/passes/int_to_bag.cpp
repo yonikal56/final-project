@@ -152,8 +152,8 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
       Trace("int-to-bags") << "kind is:"
                            << current.getKind() << std::endl;
       result = nm->mkNode(current.getKind(),
-               nm->mkNode(Kind::INT_TO_BAG, cache[current[0]]),
-               nm->mkNode(Kind::INT_TO_BAG, cache[current[1]]));
+               nm->mkNode(Kind::BAG_TO_INT, cache[current[0]]),
+               nm->mkNode(Kind::BAG_TO_INT, cache[current[1]]));
     }
     else
     {
