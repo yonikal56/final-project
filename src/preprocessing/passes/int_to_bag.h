@@ -44,6 +44,8 @@ class IntToBag : public PreprocessingPass
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
+  void addFinalizeAssertions(AssertionPipeline* assertionsToPreprocess,
+                             const std::vector<Node>& additionalConstraints);
 
  private:
   /* Map each function to a set of terms associated with it */
@@ -57,7 +59,7 @@ class IntToBag : public PreprocessingPass
   /* Map each uninterpreted sort to the number of variables in this sort. */
   USortToBVSizeMap d_usortCardinality;
   /* Convert old assertions to new versions */
-  Node convertAssertion(TNode n, NodeMap& cache, std::vector<Node>& vars);
+  Node convertAssertion(TNode n, NodeMap& cache, std::vector<Node>& vars, std::vector<Node>& additionalConstraints);
   LogicInfo d_logic;
 };
 

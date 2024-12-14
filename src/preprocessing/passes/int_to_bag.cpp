@@ -44,7 +44,7 @@ using namespace std;
 using namespace cvc5::internal::theory;
 
 
-Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
+Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vector<Node>& additionalConstraints)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
@@ -95,6 +95,10 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
                                  "Variable introduced in multiplication pass");
       Node definition = nm->mkNode(Kind::BAG_TO_INT, result);
       d_preprocContext->addSubstitution(current, definition);
+      Node one = nm->mkConstInt(Rational(1));
+      Node zero = nm->mkConstInt(Rational(0));
+      additionalConstraints.push_back(nm->mkNode(Kind::LEQ, nm->mkNode(Kind::BAG_COUNT, zero, result), one));
+      additionalConstraints.push_back(nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::BAG_COUNT, one, result), one));
     }
     else if (current.isConst() && current.getType() == nm->integerType())
     {
@@ -147,7 +151,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars)
                                      nm->mkNode(Kind::BAG_TO_INT, cache[current[0]]),
                                      nm->mkNode(Kind::BAG_TO_INT, cache[current[1]])));
     }
-    else if (current.getKind() == Kind::GEQ)
+    else if (current.getKind() == Kind::GEQ || current.getKind() == Kind::GT || current.getKind() == Kind::LEQ || current.getKind() == Kind::LT)
     {
       Trace("int-to-bags") << "kind is:"
                            << current.getKind() << std::endl;
@@ -178,17 +182,32 @@ PreprocessingPassResult IntToBag::applyInternal(
   NodeManager::currentNM()->mkConstInt(Rational(2));
   NodeMap cache;
   vector<Node> vars;
+  std::vector<Node> additionalConstraints;
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     assertionsToPreprocess->replace(
-        i, convertAssertion((*assertionsToPreprocess)[i], cache, vars));
+        i, convertAssertion((*assertionsToPreprocess)[i], cache, vars,
+                            additionalConstraints));
   }
   if (!vars.empty())
   {
     throw LogicException("Int to bag require all variables to be >= 1");
   }
 
+  addFinalizeAssertions(assertionsToPreprocess, additionalConstraints);
+
   return PreprocessingPassResult::NO_CONFLICT;
+}
+
+void IntToBag::addFinalizeAssertions(
+    AssertionPipeline* assertionsToPreprocess,
+    const std::vector<Node>& additionalConstraints)
+{
+  NodeManager* nm = nodeManager();
+  Node lemmas = nm->mkAnd(additionalConstraints);
+  assertionsToPreprocess->push_back(lemmas);
+  Trace("bv-to-int-debug") << "range constraints: " << lemmas.toString()
+                           << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */
