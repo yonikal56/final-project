@@ -642,12 +642,12 @@ void addMap(std::map<int, int> &map, int newNum) {
 
 int intFactorizationZToPositive(int z)
 {
-  return z >= 0 ? (2*z+2) : (-2*z+1);
+  return z > 1 ? (2*z - 2) : (-2 * z + 1);
 }
 
 int intFactorizationPositiveToZ(int n)
 {
-  return n % 2 == 0 ? (n/2-1) : (-(n-1)/2);
+  return n % 2 == 0 ? (n/2 + 1) : (-(n-1)/2);
 }
 
 Node BagsUtils::evaluateBagToInt(TNode n)
@@ -657,16 +657,29 @@ Node BagsUtils::evaluateBagToInt(TNode n)
   // --------
 
   std::map<Node, Rational> elements = getBagElements(n[0]);
+  NodeManager* nm = NodeManager::currentNM();
+  if (elements.empty()) {
+    return nm->mkConstInt(Rational(0));;
+  }
   int product = 1;
   for (std::pair<Node, Rational> element : elements)
   {
-    product *=
-        pow(intFactorizationZToPositive(element.first.getConst<Rational>().getNumerator().getSignedInt()),
-            element.second.getNumerator().getSignedInt());
+    if (element.first.getConst<Rational>().getNumerator().getSignedInt() == 1)
+      continue;
+    if (element.first.getConst<Rational>().getNumerator().getSignedInt() == 0)
+    {
+      product *= -1;
+    }
+    else
+    {
+      product *= pow(
+          intFactorizationZToPositive(
+              element.first.getConst<Rational>().getNumerator().getSignedInt()),
+          element.second.getNumerator().getSignedInt());
+    }
   }
 
-  NodeManager* nm = NodeManager::currentNM();
-  return nm->mkConstInt(Rational(abs(product)));
+  return nm->mkConstInt(Rational(product));
 }
 
 Node BagsUtils::evaluateIntToBag(TNode n)
@@ -674,24 +687,30 @@ Node BagsUtils::evaluateIntToBag(TNode n)
   Assert(n.getKind() == Kind::INT_TO_BAG);
   // Examples
   // --------
-
-  long num = n[0].getConst<Rational>().getNumerator().getSigned64();
-
-  Assert(num != 0);
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> children;
-  std::map<int, int> nums;
   Node emptyPart = nm->mkConst(EmptyBag(nm->mkBagType(nm->integerType())));
 
-  if (num == 1)
-  {
+  long num = n[0].getConst<Rational>().getNumerator().getSigned64();
+  if (num == 0) {
     return emptyPart;
   }
-//  if (num < 1)
-//  {
-//    addMap(nums, -1);
-//    num *= -1;
-//  }
+
+  std::vector<Node> children;
+  std::map<int, int> nums;
+
+  Node first = NodeManager::currentNM()->mkConstInt(Rational(1));
+  Node second = NodeManager::currentNM()->mkConstInt(Rational(1));
+  Node node = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, first, second);
+  children.push_back(node);
+
+  if (num < 1)
+  {
+    first = NodeManager::currentNM()->mkConstInt(Rational(0));
+    second = NodeManager::currentNM()->mkConstInt(Rational(1));
+    node = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, first, second);
+    children.push_back(node);
+    num *= -1;
+  }
 
   // Print the number of 2s that divide n
   while (num % 2 == 0)
@@ -720,19 +739,10 @@ Node BagsUtils::evaluateIntToBag(TNode n)
   }
 
   for (auto i = nums.begin(); i != nums.end(); ++i) {
-    Node first = NodeManager::currentNM()->mkConstInt(Rational(intFactorizationPositiveToZ(i->first)));
-    Node second = NodeManager::currentNM()->mkConstInt(Rational(i->second));
-    Node node = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, first, second);
-    if (Rational(i->first) == -1)
-    {
-      Assert(i->second <= 1);
-    }
+    first = NodeManager::currentNM()->mkConstInt(Rational(intFactorizationPositiveToZ(i->first)));
+    second = NodeManager::currentNM()->mkConstInt(Rational(i->second));
+    node = NodeManager::currentNM()->mkNode(Kind::BAG_MAKE, first, second);
     children.push_back(node);
-  }
-
-  if (children.size() == 0)
-  {
-    return emptyPart;
   }
 
   if (children.size() == 1)

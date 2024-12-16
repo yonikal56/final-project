@@ -59,14 +59,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
     Trace("int-to-bags") << toString(current.getKind()) << "," << current.toString() << ","
                          << to_string(current.getNumChildren()) << std::endl;
 
-    if (current.getKind() == Kind::GEQ && current[0].isVar())
-    {
-      vars.erase(remove(vars.begin(), vars.end(), current[0]), vars.end());
-      Assert(current[1].getConst<Rational>().getNumerator() == 1);
-      //result = nm->mkNode(Kind::GEQ, nm->mkNode(Kind::BAG_TO_INT, cache[current[0]]), current[1]);
-      result = nm->mkConst(true);
-    }
-    else if (current.getKind() == Kind::PRIME)
+    if (current.getKind() == Kind::PRIME)
     {
       Node card = nm->mkNode(Kind::BAG_CARD, cache[current[0]]);
       result = nm->mkNode(Kind::EQUAL, card, nm->mkConstInt(Rational(1)));
@@ -89,7 +82,6 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
     }
     else if (current.isVar() && current.getType() == nm->integerType())
     {
-      vars.push_back(current);
       result = sm->mkDummySkolem("__intToBag_var",
                                  nm->mkBagType(current.getType()),
                                  "Variable introduced in multiplication pass");
@@ -144,6 +136,9 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
       }
       result = builder;
     }
+    else if (current.getType().isBag()) {
+      result = current;
+    }
     else if (current.getKind() == Kind::ADD || current.getKind() == Kind::SUB)
     {
       result = nm->mkNode(Kind::INT_TO_BAG,
@@ -161,7 +156,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
     }
     else
     {
-      Assert(false) << "Got kind: " << current.getKind() << "\nCurrent:" << current << std::endl;
+      Assert(false) << "Got kind: " << current.getKind() << "\nType:" << current.getType() << "\nCurrent:" << current << std::endl;
     }
     cache[current] = result;
   }
