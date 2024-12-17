@@ -665,9 +665,13 @@ Node BagsUtils::evaluateBagToInt(TNode n)
   for (std::pair<Node, Rational> element : elements)
   {
     if (element.first.getConst<Rational>().getNumerator().getSignedInt() == 1)
+    {
+      Assert(element.second.getNumerator().getSignedInt() == 1) << "Multiplicity of 1 must be at most 1" << std::endl;
       continue;
+    }
     if (element.first.getConst<Rational>().getNumerator().getSignedInt() == 0)
     {
+      Assert(element.second.getNumerator().getSignedInt() == 1) << "Multiplicity of 0 must be at most 1" << std::endl;
       product *= -1;
     }
     else

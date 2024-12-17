@@ -90,11 +90,11 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
       Node one = nm->mkConstInt(Rational(1));
       Node zero = nm->mkConstInt(Rational(0));
       additionalConstraints.push_back(nm->mkNode(Kind::LEQ, nm->mkNode(Kind::BAG_COUNT, zero, result), one));
-      additionalConstraints.push_back(nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::BAG_COUNT, one, result), one));
+      additionalConstraints.push_back(nm->mkNode(Kind::LEQ, nm->mkNode(Kind::BAG_COUNT, one, result), one));
     }
     else if (current.isConst() && current.getType() == nm->integerType())
     {
-      result = nm->mkNode(Kind::INT_TO_BAG, current);//convertIntToBag(current.getConst<Rational>().getNumerator().getSigned64());
+      result = nm->mkNode(Kind::INT_TO_BAG, current);
     }
 
     else if (current.getNumChildren() == 0)
@@ -111,6 +111,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
         Node child = current[i];
         Node childRes = cache[current[i]];
         result = nm->mkNode(Kind::BAG_UNION_DISJOINT, result, childRes);
+        // result = (ite (x bag empty or y bag empty) (bag empty) ((((x/{0,1})ud(y/{0,1}))ud({1 1}))(bag.empty))ud(ite (0 in x xor 0 in y) ({0 1}) (bag empty)))))
       }
     }
     else if (current.getKind() == Kind::EQUAL || current.getKind() == Kind::NOT || current.getKind() == Kind::AND
