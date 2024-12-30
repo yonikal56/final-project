@@ -105,14 +105,33 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
     {
       Assert(cache.find(current[0]) != cache.end());
       result = cache[current[0]];
+      Node emptyPart = nm->mkConst(EmptyBag(nm->mkBagType(nm->integerType())));
+      Node emptyOr = nm->mkNode(Kind::EQUAL, result, emptyPart);
+      Node zero = nm->mkConstInt(Rational(0));
+      Node one = nm->mkConstInt(Rational(1));
+      Node bagZero = nm->mkNode(Kind::BAG_MAKE, zero, one);
+      Node bagOne = nm->mkNode(Kind::BAG_MAKE, one, one);
+      Node xorPart = nm->mkNode(Kind::BAG_MEMBER, zero, result);
+      Node unionDisjointPart = nm->mkNode(Kind::BAG_UNION_DISJOINT,
+                                          nm->mkNode(Kind::BAG_DIFFERENCE_SUBTRACT, result, bagOne),
+                                          bagOne);
       for (unsigned i = 1; i < current.getNumChildren(); ++i)
       {
         Assert(cache.find(current[i]) != cache.end());
         Node child = current[i];
         Node childRes = cache[current[i]];
-        result = nm->mkNode(Kind::BAG_UNION_DISJOINT, result, childRes);
-        // result = (ite (x bag empty or y bag empty) (bag empty) ((((x/{0,1})ud(y/{0,1}))ud({1 1}))(bag.empty))ud(ite (0 in x xor 0 in y) ({0 1}) (bag empty)))))
+        //result = nm->mkNode(Kind::BAG_UNION_DISJOINT, result, childRes);
+        emptyOr = nm->mkNode(Kind::OR, emptyOr, nm->mkNode(Kind::EQUAL, childRes, emptyPart));
+        xorPart = nm->mkNode(Kind::XOR, xorPart, nm->mkNode(Kind::BAG_MEMBER, zero, childRes));
+        unionDisjointPart = nm->mkNode(Kind::BAG_UNION_DISJOINT, unionDisjointPart, nm->mkNode(Kind::BAG_DIFFERENCE_SUBTRACT, childRes, bagOne));
       }
+      Node xorITE = nm->mkNode(Kind::ITE, xorPart, bagZero, emptyPart);
+      result = nm->mkNode(Kind::ITE, emptyOr,
+                          emptyPart,
+                          nm->mkNode(Kind::BAG_UNION_DISJOINT,
+                                     unionDisjointPart,
+                                     xorITE));
+      // result = (ite (x bag empty or y bag empty) (bag empty) ((((x/{0,1})ud(y/{0,1}))ud({1 1}))(bag.empty))ud(ite (0 in x xor 0 in y) ({0 1}) (bag empty)))))
     }
     else if (current.getKind() == Kind::EQUAL || current.getKind() == Kind::NOT || current.getKind() == Kind::AND
              || current.getKind() == Kind::OR || current.getKind() == Kind::IMPLIES || current.getKind() == Kind::BOUND_VAR_LIST || current.getKind() == Kind::FORALL)

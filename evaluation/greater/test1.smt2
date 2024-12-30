@@ -5,5 +5,6 @@
 (set-option :incremental false)
 (declare-fun x0 () Int)
 (declare-fun x1 () Int)
-(assert (= (* x0 x1) 5))
+(declare-fun x2 () Int)
+(assert (= (* x0 x1 x2) 5))
 (check-sat)
