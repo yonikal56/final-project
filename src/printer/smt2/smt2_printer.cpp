@@ -1314,6 +1314,8 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::BAG_FILTER: return "bag.filter";
     case Kind::BAG_FOLD: return "bag.fold";
     case Kind::BAG_PARTITION: return "bag.partition";
+    case Kind::BAG_TO_INT: return "bag.to.int";
+    case Kind::INT_TO_BAG: return "int.to.bag";
     case Kind::TABLE_PRODUCT: return "table.product";
     case Kind::TABLE_PROJECT: return "table.project";
     case Kind::TABLE_AGGREGATE: return "table.aggr";

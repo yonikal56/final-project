@@ -90,7 +90,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
       Node one = nm->mkConstInt(Rational(1));
       Node zero = nm->mkConstInt(Rational(0));
       additionalConstraints.push_back(nm->mkNode(Kind::LEQ, nm->mkNode(Kind::BAG_COUNT, zero, result), one));
-      additionalConstraints.push_back(nm->mkNode(Kind::LEQ, nm->mkNode(Kind::BAG_COUNT, one, result), one));
+      additionalConstraints.push_back(nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::BAG_COUNT, one, result), one));
     }
     else if (current.isConst() && current.getType() == nm->integerType())
     {
@@ -111,10 +111,12 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
       Node one = nm->mkConstInt(Rational(1));
       Node bagZero = nm->mkNode(Kind::BAG_MAKE, zero, one);
       Node bagOne = nm->mkNode(Kind::BAG_MAKE, one, one);
+      Node bagOneZero = nm->mkNode(Kind::BAG_UNION_DISJOINT, bagZero, bagOne);
       Node xorPart = nm->mkNode(Kind::BAG_MEMBER, zero, result);
-      Node unionDisjointPart = nm->mkNode(Kind::BAG_UNION_DISJOINT,
-                                          nm->mkNode(Kind::BAG_DIFFERENCE_SUBTRACT, result, bagOne),
-                                          bagOne);
+      Node unionDisjointPart = result;
+//      Node unionDisjointPart = nm->mkNode(Kind::BAG_UNION_DISJOINT,
+//                                          bagOne,
+//                                          nm->mkNode(Kind::BAG_DIFFERENCE_REMOVE, result, bagOneZero));
       for (unsigned i = 1; i < current.getNumChildren(); ++i)
       {
         Assert(cache.find(current[i]) != cache.end());
@@ -123,11 +125,12 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
         //result = nm->mkNode(Kind::BAG_UNION_DISJOINT, result, childRes);
         emptyOr = nm->mkNode(Kind::OR, emptyOr, nm->mkNode(Kind::EQUAL, childRes, emptyPart));
         xorPart = nm->mkNode(Kind::XOR, xorPart, nm->mkNode(Kind::BAG_MEMBER, zero, childRes));
-        unionDisjointPart = nm->mkNode(Kind::BAG_UNION_DISJOINT, unionDisjointPart, nm->mkNode(Kind::BAG_DIFFERENCE_SUBTRACT, childRes, bagOne));
+        unionDisjointPart = nm->mkNode(Kind::BAG_UNION_DISJOINT, unionDisjointPart, childRes);
+        //unionDisjointPart = nm->mkNode(Kind::BAG_UNION_DISJOINT, unionDisjointPart, nm->mkNode(Kind::BAG_DIFFERENCE_REMOVE, childRes, bagOneZero));
       }
       Node xorITE = nm->mkNode(Kind::ITE, xorPart, bagZero, emptyPart);
-      result = nm->mkNode(Kind::ITE, emptyOr,
-                          emptyPart,
+      unionDisjointPart = nm->mkNode(Kind::BAG_UNION_DISJOINT, nm->mkNode(Kind::BAG_DIFFERENCE_REMOVE, unionDisjointPart, bagOneZero), bagOne);
+      result = nm->mkNode(Kind::ITE, emptyOr, emptyPart,
                           nm->mkNode(Kind::BAG_UNION_DISJOINT,
                                      unionDisjointPart,
                                      xorITE));
