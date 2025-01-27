@@ -10,16 +10,14 @@ for i in n:
         for k in range(i):
             file.write(f'(declare-fun x{k} () Int)\n')
         for k in range(i):
-            file.write(f'(assert (>= x{k} 1))\n')
+            file.write(f'(assert (distinct x{k} 1))\n')
+        for k in range(i):
+            file.write(f'(assert (distinct x{k} -1))\n')
         for k in range(i):
             file.write(f'(assert (distinct x{k} {result}))\n')
-            file.write(f'(assert (distinct x{k} 1))\n')
         str = "(* x0 x1)"
         for k in range(2,i):
             str = f'(* {str} x{k})'
         str = f'(assert (= {str} {result}))\n'
         file.write(str)
-        for k in range(i):
-            file.write(f'(assert (distinct x{k} {result}))\n')
-            file.write(f'(assert (distinct x{k} 1))\n')
         file.write('(check-sat)\n')
