@@ -48,7 +48,12 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-
+  Node zero = nm->mkConstInt(Rational(0));
+  Node one = nm->mkConstInt(Rational(1));
+  Node bagZero = nm->mkNode(Kind::BAG_MAKE, zero, one);
+  Node bagOne = nm->mkNode(Kind::BAG_MAKE, one, one);
+  Node bagOneZero = nm->mkNode(Kind::BAG_UNION_DISJOINT, bagZero, bagOne);
+  Node emptyPart = nm->mkConst(EmptyBag(nm->mkBagType(nm->integerType())));
 
   for (TNode current :
        NodeDfsIterable(n, VisitOrder::POSTORDER, [&cache](TNode nn) {
@@ -61,24 +66,40 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
 
     if (current.getKind() == Kind::PRIME)
     {
-      Node card = nm->mkNode(Kind::BAG_CARD, cache[current[0]]);
-      result = nm->mkNode(Kind::EQUAL, card, nm->mkConstInt(Rational(1)));
+      // if negative, false. else, cardinality of bag without 1
+      Node emptyCond = nm->mkNode(Kind::EQUAL, cache[current[0]], emptyPart);
+      Node card = nm->mkNode(Kind::BAG_CARD, nm->mkNode(Kind::BAG_DIFFERENCE_REMOVE, cache[current[0]], bagOne));
+      result = nm->mkNode(Kind::ITE, emptyCond, nm->mkConst(false), nm->mkNode(Kind::EQUAL, card, nm->mkConstInt(Rational(1))));
     }
     else if (current.getKind() == Kind::FACTORS)
     {
-      result = nm->mkNode(Kind::BAG_SETOF, cache[current[0]]);
+      // remove 1 and 0
+      result = nm->mkNode(Kind::BAG_SETOF, nm->mkNode(Kind::BAG_DIFFERENCE_REMOVE, cache[current[0]], bagOneZero));
     }
     else if (current.getKind() == Kind::NUMOFFACTORS)
     {
-      result = nm->mkNode(Kind::BAG_CARD, nm->mkNode(Kind::BAG_SETOF, cache[current[0]]));
+      // remove 1 and 0
+      result = nm->mkNode(Kind::BAG_CARD, nm->mkNode(Kind::BAG_SETOF, nm->mkNode(Kind::BAG_DIFFERENCE_REMOVE, cache[current[0]], bagOneZero)));
     }
     else if (current.getKind() == Kind::GCD)
     {
-      result = nm->mkNode(Kind::BAG_INTER_MIN, cache[current[0]], cache[current[1]]);
+      // remove 1 and 0 and add 1 in the end
+      Node emptyCond = nm->mkNode(Kind::EQUAL, cache[current[0]], emptyPart);
+      Node emptyOr = nm->mkNode(Kind::AND, emptyCond, nm->mkNode(Kind::EQUAL, cache[current[1]], emptyPart));
+      Node oneWithout = nm->mkNode(Kind::BAG_DIFFERENCE_REMOVE, cache[current[0]], bagOneZero);
+      Node twoWithout = nm->mkNode(Kind::BAG_DIFFERENCE_REMOVE, cache[current[1]], bagOneZero);
+      result = nm->mkNode(Kind::ITE, emptyOr, emptyPart,
+                              nm->mkNode(Kind::BAG_UNION_DISJOINT,  nm->mkNode(Kind::BAG_INTER_MIN, oneWithout, twoWithout), bagOne));
     }
     else if (current.getKind() == Kind::LCM)
     {
-      result = nm->mkNode(Kind::BAG_UNION_MAX, cache[current[0]], cache[current[1]]);
+      // remove 1 and 0 and add 1 in the end
+      Node emptyCond = nm->mkNode(Kind::EQUAL, cache[current[0]], emptyPart);
+      Node emptyOr = nm->mkNode(Kind::OR, emptyCond, nm->mkNode(Kind::EQUAL, cache[current[1]], emptyPart));
+      Node oneWithout = nm->mkNode(Kind::BAG_DIFFERENCE_REMOVE, cache[current[0]], bagOneZero);
+      Node twoWithout = nm->mkNode(Kind::BAG_DIFFERENCE_REMOVE, cache[current[1]], bagOneZero);
+      result = nm->mkNode(Kind::ITE, emptyOr, emptyPart,
+                          nm->mkNode(Kind::BAG_UNION_DISJOINT,  nm->mkNode(Kind::BAG_UNION_MAX, oneWithout, twoWithout), bagOne));
     }
     else if (current.isVar() && current.getType() == nm->integerType())
     {
@@ -87,8 +108,6 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
                                  "Variable introduced in multiplication pass");
       Node definition = nm->mkNode(Kind::BAG_TO_INT, result);
       d_preprocContext->addSubstitution(current, definition);
-      Node one = nm->mkConstInt(Rational(1));
-      Node zero = nm->mkConstInt(Rational(0));
       additionalConstraints.push_back(nm->mkNode(Kind::LEQ, nm->mkNode(Kind::BAG_COUNT, zero, result), one));
       additionalConstraints.push_back(nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::BAG_COUNT, one, result), one));
     }
@@ -105,13 +124,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
     {
       Assert(cache.find(current[0]) != cache.end());
       result = cache[current[0]];
-      Node emptyPart = nm->mkConst(EmptyBag(nm->mkBagType(nm->integerType())));
       Node emptyOr = nm->mkNode(Kind::EQUAL, result, emptyPart);
-      Node zero = nm->mkConstInt(Rational(0));
-      Node one = nm->mkConstInt(Rational(1));
-      Node bagZero = nm->mkNode(Kind::BAG_MAKE, zero, one);
-      Node bagOne = nm->mkNode(Kind::BAG_MAKE, one, one);
-      Node bagOneZero = nm->mkNode(Kind::BAG_UNION_DISJOINT, bagZero, bagOne);
       Node xorPart = nm->mkNode(Kind::BAG_MEMBER, zero, result);
       Node unionDisjointPart = result;
 //      Node unionDisjointPart = nm->mkNode(Kind::BAG_UNION_DISJOINT,
