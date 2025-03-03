@@ -10,13 +10,6 @@
 (declare-fun x4 () Int)
 (declare-fun x5 () Int)
 (declare-fun x6 () Int)
-(assert (>= x0 1))
-(assert (>= x1 1))
-(assert (>= x2 1))
-(assert (>= x3 1))
-(assert (>= x4 1))
-(assert (>= x5 1))
-(assert (>= x6 1))
 (assert (distinct x0 x1 x2 x3 x4 x5 x6 1))
 (define-fun is.prime2 ((x Int)) Bool
 (forall ((i Int))

@@ -48,8 +48,6 @@ for i in n:
 
             for k in range(i):
                 file.write(f'(declare-fun x{k} () Int)\n')
-            for k in range(i):
-                file.write(f'(assert (>= x{k} 1))\n')
 
             file.write(f'(assert (distinct {" ".join(vars)} 1))\n')
 

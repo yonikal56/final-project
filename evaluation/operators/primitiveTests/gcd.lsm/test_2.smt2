@@ -5,8 +5,6 @@
 (set-option :incremental false)
 (declare-fun x0 () Int)
 (declare-fun x1 () Int)
-(assert (>= x0 1))
-(assert (>= x1 1))
 (assert (distinct x0 x1))
 (define-fun divisor ((a Int) (b Int)) Bool
 (exists ((k Int)) (= b (* a k))))

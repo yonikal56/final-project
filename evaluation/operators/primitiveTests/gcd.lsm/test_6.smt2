@@ -9,12 +9,6 @@
 (declare-fun x3 () Int)
 (declare-fun x4 () Int)
 (declare-fun x5 () Int)
-(assert (>= x0 1))
-(assert (>= x1 1))
-(assert (>= x2 1))
-(assert (>= x3 1))
-(assert (>= x4 1))
-(assert (>= x5 1))
 (assert (distinct x0 x1 x2 x3 x4 x5))
 (define-fun divisor ((a Int) (b Int)) Bool
 (exists ((k Int)) (= b (* a k))))
