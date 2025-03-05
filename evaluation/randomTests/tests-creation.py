@@ -18,8 +18,6 @@ for i in n:
         all_number = len(all_vars)
         for k in range(number_of_x):
             file.write(f'(declare-fun x{k} () Int)\n')
-        for k in range(number_of_x):
-            file.write(f'(assert (>= x{k} 1))\n')
 
         number_of_asserts = randint(1, 10)
         operators = ['=', 'distinct']

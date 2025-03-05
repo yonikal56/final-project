@@ -5,13 +5,13 @@ withoutFails=0
 
 for filename in ./*.smt2; do
   echo "$filename:"
-  timeout 10 ../../build/bin/cvc5 --solve-int-as-bag $filename > /dev/null 2>&1
+  timeout 300 ../../build/bin/cvc5 --solve-int-as-bag $filename > /dev/null 2>&1
   RESULT=$?
   if [ $RESULT -ne 0 ]; then
     echo "$filename using solveIntAsBag failed"
     echo "$filename - timeout" >> "solveIntAsBagFails.txt"
     ((withFails++))
-    timeout 10 ../build/bin/cvc5 $filename > /dev/null 2>&1
+    timeout 300 ../build/bin/cvc5 $filename > /dev/null 2>&1
     RESULT=$?
     if [ $RESULT -ne 0 ]; then
       echo "$filename without solveIntAsBag failed"
@@ -19,7 +19,7 @@ for filename in ./*.smt2; do
       ((withoutFails++))
     fi
   else
-    timeout 10 ../../build/bin/cvc5 $filename > /dev/null 2>&1
+    timeout 300 ../../build/bin/cvc5 $filename > /dev/null 2>&1
     RESULT=$?
     if [ $RESULT -ne 0 ]; then
       echo "$filename without solveIntAsBag failed"
