@@ -8,4 +8,5 @@
 (assert (= x1 6))
 (assert (= (gcd 30 15) 15))
 (assert (= (gcd 4 9) 1))
+(assert (= (gcd 0 0) 0))
 (check-sat)

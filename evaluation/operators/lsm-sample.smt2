@@ -7,4 +7,7 @@
 (assert (= (lcm -4 6) x1))
 (assert (= x1 12))
 (assert (= (lcm 4 -5) 20))
+(assert (= (lcm 0 1) 0))
+(assert (= (lcm 1 0) 0))
+(assert (= (lcm 0 0) 0))
 (check-sat)

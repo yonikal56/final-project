@@ -6,4 +6,7 @@
 (declare-fun x1 () Int)
 (assert (is.prime 5))
 (assert (is.prime 7))
+(assert (not (is.prime -7)))
+(assert (not (is.prime -1)))
+(assert (not (is.prime 1)))
 (check-sat)

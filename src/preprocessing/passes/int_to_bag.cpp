@@ -66,14 +66,17 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
 
     if (current.getKind() == Kind::PRIME)
     {
-      // if negative, false. else, cardinality of bag without 1
+      // if empty or negative, false. Else, cardinality of bag without 1
       Node emptyCond = nm->mkNode(Kind::EQUAL, cache[current[0]], emptyPart);
+      emptyCond = nm->mkNode(Kind::OR, emptyCond,
+                                    nm->mkNode(Kind::BAG_MEMBER, zero, cache[current[0]]));
       Node card = nm->mkNode(Kind::BAG_CARD, nm->mkNode(Kind::BAG_DIFFERENCE_REMOVE, cache[current[0]], bagOne));
       result = nm->mkNode(Kind::ITE, emptyCond, nm->mkConst(false), nm->mkNode(Kind::EQUAL, card, nm->mkConstInt(Rational(1))));
     }
     else if (current.getKind() == Kind::FACTORS)
     {
       // remove 1 and 0
+      // TODO: update factors to same_factors that only compares factors of 2 numbers, if the same
       result = nm->mkNode(Kind::BAG_SETOF, nm->mkNode(Kind::BAG_DIFFERENCE_REMOVE, cache[current[0]], bagOneZero));
     }
     else if (current.getKind() == Kind::NUMOFFACTORS)
@@ -83,6 +86,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
     }
     else if (current.getKind() == Kind::GCD)
     {
+      // we fixed GCD(0,0)=0
       // remove 1 and 0 and add 1 in the end
       Node emptyCond = nm->mkNode(Kind::EQUAL, cache[current[0]], emptyPart);
       Node emptyOr = nm->mkNode(Kind::AND, emptyCond, nm->mkNode(Kind::EQUAL, cache[current[1]], emptyPart));
@@ -93,6 +97,7 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
     }
     else if (current.getKind() == Kind::LCM)
     {
+      // we fixed LCM(0,a)=0
       // remove 1 and 0 and add 1 in the end
       Node emptyCond = nm->mkNode(Kind::EQUAL, cache[current[0]], emptyPart);
       Node emptyOr = nm->mkNode(Kind::OR, emptyCond, nm->mkNode(Kind::EQUAL, cache[current[1]], emptyPart));
