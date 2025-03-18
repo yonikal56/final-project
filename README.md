@@ -53,7 +53,7 @@ In addition to this transformation, new operators have been implemented based on
 1. **gcd** (greatest common divisor)
 2. **lcm** (least common multiple)
 3. **is_prime** (checks if a number is prime)
-4. **factors** (lists the prime factors of a number)
+4. **same_factors** (if two numbers has the same factors)
 5. **num_of_factors** (counts the number of different prime factors of a number)
 
 ### Translation of Integer Operators to Bag Operators
@@ -64,7 +64,7 @@ The supported integer operators are translated to equivalent bag operators, with
 2. **gcd** – represented as the intersection of bags, where the multiplicity of each element is the minimum of its multiplicities in the two bags.
 3. **lcm** – represented as the union of bags, where the multiplicity of each element is the maximum of its multiplicities.
 4. **is_prime** – the bag's cardinality equals 1 (i.e., the bag contains only one distinct element).
-5. **factors** – the set of distinct bag elements.
+5. **same_factors** – the set of distinct bag elements is the same for both numbers.
 6. **num_of_factors** – the cardinality of the set of distinct bag elements.
 
 

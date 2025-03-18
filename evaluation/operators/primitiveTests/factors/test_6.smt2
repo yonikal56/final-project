@@ -17,8 +17,8 @@
 (or (= x i) (= i 1))))
 )
 (define-fun divisor ((a Int) (b Int)) Bool
-(exists ((k Int)) (= b (* a k)))
-)(declare-fun numfactors () Int)
+(exists ((k Int)) (= b (* a k))))
+(declare-fun numfactors () Int)
 (declare-fun ffactorsx0 (Int) Int)
 (declare-fun ffactorsx1 (Int) Int)
 (declare-fun ffactorsx2 (Int) Int)

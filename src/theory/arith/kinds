@@ -46,7 +46,7 @@ operator ARCCOTANGENT 1 "arc cotangent"
 
 operator PRIME 1 "is the number prime"
 operator NUMOFFACTORS 1 "number of prime factors"
-operator FACTORS 1 "factors of number"
+operator SAME_FACTORS 2 "is the two numbers has the same prime factors"
 operator GCD 2 "greatest common divisor"
 operator LCM 2 "least common multiple"
 
@@ -176,7 +176,7 @@ typerule PRIME "SimpleTypeRule<RBool, AInteger>"
 typerule NUMOFFACTORS "SimpleTypeRule<RInteger, AInteger>"
 typerule GCD ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 typerule LCM ::cvc5::internal::theory::arith::ArithOperatorTypeRule
-typerule FACTORS "SimpleTypeRule<RInteger, AInteger>"
+typerule SAME_FACTORS ::cvc5::internal::theory::arith::ArithRelationTypeRule
 
 typerule SQRT "SimpleTypeRule<RReal, AReal>"
 

@@ -319,7 +319,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case Kind::POW:
       case Kind::PI:
       case Kind::PRIME:
-      case Kind::FACTORS:
+      case Kind::SAME_FACTORS:
       case Kind::NUMOFFACTORS:
       case Kind::GCD:
       case Kind::LCM: return RewriteResponse(REWRITE_DONE, t);
@@ -410,7 +410,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       }
       case Kind::PI: return RewriteResponse(REWRITE_DONE, t);
       case Kind::PRIME:
-      case Kind::FACTORS:
+      case Kind::SAME_FACTORS:
       case Kind::NUMOFFACTORS:
       case Kind::GCD:
       case Kind::LCM: return RewriteResponse(REWRITE_DONE, t);

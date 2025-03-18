@@ -7,8 +7,10 @@ def create_mult(all_vars):
     return f'(* {" ".join(all_vars)})'
 
 def originalTestsAssertion(vars):
-    factor_strings = [f'(factors {var})' for var in vars]
-    return f'(assert (= {" ".join(factor_strings)}))\n'
+    str = ""
+    for i in range(len(vars)-1):
+        str += f'(assert (same.factors {vars[i]} {vars[i+1]}))\n'
+    return str
 
 def primitiveTestsAssertion(vars):
     str = '(define-fun is.prime2 ((x Int)) Bool\n(forall ((i Int))\n(=>\n(and (> i 0) (exists ((j Int)) (and (> j 0) (= x (* i j)))))\n'

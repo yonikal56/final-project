@@ -950,7 +950,7 @@ void Smt2State::setLogic(std::string name)
     // operators for prime number using bags
     addOperator(Kind::PRIME, "is.prime");
     addOperator(Kind::NUMOFFACTORS, "num.of.factors");
-    addOperator(Kind::FACTORS, "factors");
+    addOperator(Kind::SAME_FACTORS, "same.factors");
     addOperator(Kind::GCD, "gcd");
     addOperator(Kind::LCM, "lcm");
   }

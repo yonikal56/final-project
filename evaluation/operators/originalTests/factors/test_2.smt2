@@ -6,5 +6,5 @@
 (declare-fun x0 () Int)
 (declare-fun x1 () Int)
 (assert (distinct x0 x1))
-(assert (= (factors x0) (factors x1)))
+(assert (same.factors x0 x1))
 (check-sat)

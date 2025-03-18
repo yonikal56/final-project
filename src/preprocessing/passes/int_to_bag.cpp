@@ -73,11 +73,12 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
       Node card = nm->mkNode(Kind::BAG_CARD, nm->mkNode(Kind::BAG_DIFFERENCE_REMOVE, cache[current[0]], bagOne));
       result = nm->mkNode(Kind::ITE, emptyCond, nm->mkConst(false), nm->mkNode(Kind::EQUAL, card, nm->mkConstInt(Rational(1))));
     }
-    else if (current.getKind() == Kind::FACTORS)
+    else if (current.getKind() == Kind::SAME_FACTORS)
     {
       // remove 1 and 0
-      // TODO: update factors to same_factors that only compares factors of 2 numbers, if the same
-      result = nm->mkNode(Kind::BAG_SETOF, nm->mkNode(Kind::BAG_DIFFERENCE_REMOVE, cache[current[0]], bagOneZero));
+      result = nm->mkNode(Kind::EQUAL,
+                          nm->mkNode(Kind::BAG_SETOF, nm->mkNode(Kind::BAG_DIFFERENCE_REMOVE, cache[current[0]], bagOneZero)),
+                          nm->mkNode(Kind::BAG_SETOF, nm->mkNode(Kind::BAG_DIFFERENCE_REMOVE, cache[current[1]], bagOneZero)));
     }
     else if (current.getKind() == Kind::NUMOFFACTORS)
     {

@@ -8,5 +8,7 @@
 (declare-fun x2 () Int)
 (declare-fun x3 () Int)
 (assert (distinct x0 x1 x2 x3))
-(assert (= (factors x0) (factors x1) (factors x2) (factors x3)))
+(assert (same.factors x0 x1))
+(assert (same.factors x1 x2))
+(assert (same.factors x2 x3))
 (check-sat)

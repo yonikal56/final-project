@@ -188,7 +188,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         /* PRIMES ----------------------------------------------------------- */
         KIND_ENUM(Kind::PRIME, internal::Kind::PRIME),
         KIND_ENUM(Kind::NUMOFFACTORS, internal::Kind::NUMOFFACTORS),
-        KIND_ENUM(Kind::FACTORS, internal::Kind::FACTORS),
+        KIND_ENUM(Kind::SAME_FACTORS, internal::Kind::SAME_FACTORS),
         KIND_ENUM(Kind::GCD, internal::Kind::GCD),
         KIND_ENUM(Kind::LCM, internal::Kind::LCM),
         /* BV --------------------------------------------------------------- */
