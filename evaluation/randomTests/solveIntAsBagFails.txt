@@ -1,0 +1,18 @@
+./random_test_0.smt2 - timeout
+./random_test_1.smt2 - timeout
+./random_test_2.smt2 - timeout
+./random_test_3.smt2 - timeout
+./random_test_4.smt2 - timeout
+./random_test_5.smt2 - timeout
+./random_test_6.smt2 - timeout
+./random_test_7.smt2 - timeout
+./random_test_8.smt2 - timeout
+./random_test_9.smt2 - timeout
+./random_test_0.smt2 - different result
+./random_test_1.smt2 - timeout
+./random_test_2.smt2 - timeout
+./random_test_3.smt2 - timeout
+./random_test_4.smt2 - timeout
+./random_test_6.smt2 - timeout
+./random_test_7.smt2 - timeout
+./random_test_8.smt2 - timeout

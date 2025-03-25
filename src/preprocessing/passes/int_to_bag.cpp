@@ -114,8 +114,12 @@ Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vec
                                  "Variable introduced in multiplication pass");
       Node definition = nm->mkNode(Kind::BAG_TO_INT, result);
       d_preprocContext->addSubstitution(current, definition);
-      additionalConstraints.push_back(nm->mkNode(Kind::LEQ, nm->mkNode(Kind::BAG_COUNT, zero, result), one));
-      additionalConstraints.push_back(nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::BAG_COUNT, one, result), one));
+      Node constrain1 = nm->mkNode(Kind::LEQ, nm->mkNode(Kind::BAG_COUNT, zero, result), one);
+      Node constrain2 = nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::BAG_COUNT, one, result), one);
+      Node emptyCond = nm->mkNode(Kind::EQUAL, result, emptyPart);
+      additionalConstraints.push_back(
+          nm->mkNode(Kind::OR, emptyCond, nm->mkNode(Kind::AND, constrain1, constrain2))
+      );
     }
     else if (current.isConst() && current.getType() == nm->integerType())
     {
