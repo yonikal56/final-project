@@ -44,6 +44,8 @@ using namespace std;
 using namespace cvc5::internal::theory;
 
 
+//TODO: lemma regarding subset means <
+
 Node IntToBag::convertAssertion(TNode n, NodeMap& cache, vector<Node>& vars, vector<Node>& additionalConstraints)
 {
   NodeManager* nm = NodeManager::currentNM();

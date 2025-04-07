@@ -59,6 +59,14 @@ class IntToBag : public PreprocessingPass
   /* Map each uninterpreted sort to the number of variables in this sort. */
   USortToBVSizeMap d_usortCardinality;
   /* Convert old assertions to new versions */
+  /*
+   * Any integer is converted to a bag of the following form:
+   * - empty bag represents the number 0
+   * - if 0 appears once in the bag, the number is negative. 0 can not appear more than once in a bag
+   * - for any non-zero number, 1 appears exactly once in the bag
+   * - every number except for 0 and 1, is converted to a positive number
+   * (using the theory/bags/bags_utils.cppt/intFactorizationPositiveToZ function), representing a prime factor
+   */
   Node convertAssertion(TNode n, NodeMap& cache, std::vector<Node>& vars, std::vector<Node>& additionalConstraints);
   LogicInfo d_logic;
 };
