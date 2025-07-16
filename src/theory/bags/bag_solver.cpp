@@ -77,6 +77,7 @@ void BagSolver::checkBasicOperations()
         case Kind::BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(n); break;
         case Kind::BAG_SETOF: checkSetof(n); break;
         case Kind::BAG_FILTER: checkFilter(n); break;
+        case Kind::BAG_TO_INT: checkBagToInt(n); break;
         case Kind::TABLE_PRODUCT: checkProduct(n); break;
         case Kind::TABLE_JOIN: checkJoin(n); break;
         case Kind::TABLE_GROUP: checkGroup(n); break;
@@ -148,6 +149,17 @@ void BagSolver::checkEmpty(const Node& n)
   for (const Node& e : d_state.getElements(n))
   {
     InferInfo i = d_ig.empty(n, d_state.getRepresentative(e));
+    d_im.lemmaTheoryInference(&i);
+  }
+}
+
+void BagSolver::checkBagToInt(const Node& n)
+{
+  Assert(n.getKind() == Kind::BAG_TO_INT);
+  std::set<Node> elements = getElementsForBinaryOperator(n); //something like that
+  for (const Node& e : elements) // actually go over all pairs of nodes
+  {
+    InferInfo i = d_ig.bagToInt(e,e);
     d_im.lemmaTheoryInference(&i);
   }
 }

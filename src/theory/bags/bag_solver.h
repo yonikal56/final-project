@@ -88,6 +88,8 @@ class BagSolver : protected EnvObj
   void checkUnionDisjoint(const Node& n);
   /** apply inference rules for union max */
   void checkUnionMax(const Node& n);
+  /** apply inference rules for bag_to_int operator */
+  void checkBagToInt(const Node& n);
   /** apply inference rules for intersection_min operator */
   void checkIntersectionMin(const Node& n);
   /** apply inference rules for difference subtract */

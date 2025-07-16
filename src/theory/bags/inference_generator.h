@@ -181,6 +181,14 @@ class InferenceGenerator
    *       0))))
    * where skolem is a fresh variable equals (bag.difference_remove A B)
    */
+
+  /**
+   * @param e1 first bag
+   * @param e2 second bag
+   * @return
+   */
+  InferInfo bagToInt(Node e1, Node e2);
+
   InferInfo differenceRemove(Node n, Node e);
   /**
    * @param n is (bag.setof A) where A is a bag of type (Bag E)

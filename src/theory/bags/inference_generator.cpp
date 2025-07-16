@@ -335,6 +335,15 @@ InferInfo InferenceGenerator::differenceRemove(Node n, Node e)
   return inferInfo;
 }
 
+InferInfo InferenceGenerator::bagToInt(Node e1, Node e2)
+{
+  // here we should assert that we have the right kind
+  std::cout << e1 << "\n" << e2 << std::endl;
+  InferInfo inferInfo(d_im, InferenceId::BAG_TO_INT);
+  inferInfo.d_conclusion = d_nm->mkConst(true);
+  return inferInfo;
+}
+
 InferInfo InferenceGenerator::setof(Node n, Node e)
 {
   Assert(n.getKind() == Kind::BAG_SETOF && n[0].getType().isBag());
