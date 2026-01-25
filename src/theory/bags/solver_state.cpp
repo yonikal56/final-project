@@ -70,18 +70,16 @@ void SolverState::registerCardinalityTerm(Node n, Node skolem)
   d_cardTerms[n] = skolem;
 }
 
-void SolverState::registerIntToBagTerm(Node n, Node skolem)
+void SolverState::registerIntToBagTerm(Node n)
 {
   Assert(n.getKind() == Kind::INT_TO_BAG);
-  Assert(skolem.isVar());
-  d_cardTerms[n] = skolem;
+  d_intToBagTerms.push_back(n);
 }
 
-void SolverState::registerBagToIntTerm(Node n, Node skolem)
+void SolverState::registerBagToIntTerm(Node n)
 {
   Assert(n.getKind() == Kind::BAG_TO_INT);
-  Assert(skolem.isVar());
-  d_cardTerms[n] = skolem;
+  d_intToBagTerms.push_back(n);
 }
 
 Node SolverState::getCardinalitySkolem(Node n)

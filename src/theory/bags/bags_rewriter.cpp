@@ -153,13 +153,10 @@ BagsRewriteResponse BagsRewriter::preRewriteEqual(const TNode& n) const
 
 BagsRewriteResponse BagsRewriter::rewriteSubBag(const TNode& n) const
 {
-  Assert(n.getKind() == Kind::BAG_SUBBAG);
-
-  // (bag.subbag A B) = ((bag.difference_subtract A B) == bag.empty)
-  Node emptybag = d_nm->mkConst(EmptyBag(n[0].getType()));
-  Node subtract = d_nm->mkNode(Kind::BAG_DIFFERENCE_SUBTRACT, n[0], n[1]);
-  Node equal = subtract.eqNode(emptybag);
-  return BagsRewriteResponse(equal, Rewrite::SUB_BAG);
+  // we want to capture (bag.subbag A B) to infer
+  // (=> (bag.subbag A B) (<= (bag.to.int A) (bag.to.int B))) as lemmas
+  // todo: modify the original rewrite as an inference in the solver
+  return BagsRewriteResponse(n, Rewrite::NONE);
 }
 
 BagsRewriteResponse BagsRewriter::rewriteMember(const TNode& n) const

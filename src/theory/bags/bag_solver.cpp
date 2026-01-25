@@ -155,13 +155,13 @@ void BagSolver::checkEmpty(const Node& n)
 
 void BagSolver::checkBagToInt(const Node& n)
 {
-  Assert(n.getKind() == Kind::BAG_TO_INT);
-  std::set<Node> elements = getElementsForBinaryOperator(n); //something like that
-  for (const Node& e : elements) // actually go over all pairs of nodes
-  {
-    InferInfo i = d_ig.bagToInt(e,e);
-    d_im.lemmaTheoryInference(&i);
-  }
+//  Assert(n.getKind() == Kind::BAG_TO_INT);
+//  std::set<Node> elements = getElementsForBinaryOperator(n); //something like that
+//  for (const Node& e : elements) // actually go over all pairs of nodes
+//  {
+//    InferInfo i = d_ig.bagToInt(e,e);
+//    d_im.lemmaTheoryInference(&i);
+//  }
 }
 
 void BagSolver::checkUnionDisjoint(const Node& n)
